@@ -1,0 +1,57 @@
+# BentoGens Main Configuration
+
+# Database Settings
+database:
+  type: SQLITE  # SQLITE or MYSQL
+  mysql:
+    host: localhost
+    port: 3306
+    database: bentogens
+    username: root
+    password: ''
+
+# Generator Settings
+generators:
+  # Work even when owner offline
+  online-only: false
+  
+  # Default max generators per player
+  default-max: 10
+  
+  # Force restore blocks on server restart (BUG FIX!)
+  force-restore-blocks: true
+  
+  # Restore on chunk load
+  restore-on-chunk-load: true
+  
+  # Drop items directly to inventory (true) or spawn in world (false)
+  drop-to-inventory: true
+
+# BentoBox Integration
+bentobox:
+  enabled: true
+  
+  # Return generators when player leaves island
+  return-on-leave: true
+  
+  # Remove generators when island deleted
+  remove-on-delete: true
+  
+  # Clear generators on island reset
+  clear-on-reset: true
+  
+  # Only place on own island
+  require-own-island: true
+
+# Messages
+messages:
+  prefix: '&6[BentoGens]'
+  no-permission: '{prefix} &cNo permission!'
+  generator-placed: '{prefix} &aGenerator placed! &7({current}/{max})'
+  generator-removed: '{prefix} &cGenerator removed!'
+  max-generators: '{prefix} &cMax generators reached! &7({max})'
+  not-on-island: '{prefix} &cYou must be on your island!'
+  not-your-island: '{prefix} &cThis is not your island!'
+  reload-success: '{prefix} &aConfiguration reloaded!'
+  not-owner: '{prefix} &cYou don''t own this generator!'
+  generators-returned: '{prefix} &aYour &e{amount} &agenerators have been returned!'

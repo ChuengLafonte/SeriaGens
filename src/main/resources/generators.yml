@@ -1,0 +1,113 @@
+# BentoGens Generator Configurations
+
+wheat_generator:
+  display-name: "&e&lWheat Generator"
+  interval: 20  # seconds
+  
+  # Block material
+  material: HAY_BLOCK
+  
+  # Upgrade settings
+  upgrade:
+    enabled: true
+    next-tier: melon_generator
+    cost: 100.0
+  
+  # Shop item
+  item:
+    material: HAY_BLOCK
+    display-name: "&e&lWheat Generator"
+    amount: 1
+    lore:
+      - "&7Tier: &f1"
+      - "&7Interval: &f20 seconds"
+      - ""
+      - "&e&lDrops:"
+      - "&7 • Wheat (70%)"
+      - "&7 • Hay Bale (30%)"
+      - ""
+      - "&aPlace on your island to activate!"
+  
+  # Drops
+  drops:
+    wheat:
+      chance: 70
+      value: 5.0
+      item:
+        material: WHEAT
+        amount: 1
+        display-name: "&eWheat"
+        lore:
+          - "&7From generator"
+    
+    hay:
+      chance: 30
+      value: 20.0
+      item:
+        material: HAY_BLOCK
+        amount: 1
+        display-name: "&eHay Bale"
+        lore:
+          - "&7From generator"
+
+melon_generator:
+  display-name: "&a&lMelon Generator"
+  interval: 18
+  material: MELON
+  
+  upgrade:
+    enabled: true
+    next-tier: diamond_generator
+    cost: 250.0
+  
+  item:
+    material: MELON
+    display-name: "&a&lMelon Generator"
+    lore:
+      - "&7Tier: &f2"
+      - "&7Interval: &f18 seconds"
+      - ""
+      - "&aPlace on your island to activate!"
+  
+  drops:
+    melon_slice:
+      chance: 65
+      value: 8.0
+      item:
+        material: MELON_SLICE
+        amount: 1
+    
+    melon_block:
+      chance: 35
+      value: 32.0
+      item:
+        material: MELON
+        amount: 1
+
+diamond_generator:
+  display-name: "&b&lDiamond Generator"
+  interval: 30
+  material: DIAMOND_BLOCK
+  
+  upgrade:
+    enabled: false
+  
+  item:
+    material: DIAMOND_BLOCK
+    display-name: "&b&lDiamond Generator"
+    lore:
+      - "&7Tier: &fMAX"
+      - "&7Interval: &f30 seconds"
+      - ""
+      - "&b&lDrops:"
+      - "&7 • Diamond (100%)"
+      - ""
+      - "&aPlace on your island to activate!"
+  
+  drops:
+    diamond:
+      chance: 100
+      value: 100.0
+      item:
+        material: DIAMOND
+        amount: 1

@@ -1,0 +1,46 @@
+name: BentoGens
+version: ${project.version}
+main: com.yourserver.bentogens.BentoGens
+api-version: '1.21'
+author: YourServer
+description: Generator Plugin for BentoBox
+
+# Optional dependencies
+softdepend:
+  - BentoBox
+  - Vault
+
+commands:
+  bentogens:
+    description: Main BentoGens command
+    usage: /bentogens [help|info|reload|give|restore]
+    aliases: [bgens, bg]
+  
+  genshop:
+    description: Open generator shop
+    usage: /genshop
+    aliases: [bgshop, generatorshop]
+    permission: bentogens.shop
+
+permissions:
+  bentogens.admin:
+    description: Admin permission
+    default: op
+  bentogens.use:
+    description: Use generators
+    default: true
+  bentogens.max.10:
+    description: Max 10 generators
+    default: true
+  bentogens.max.25:
+    description: Max 25 generators
+    default: false
+  bentogens.max.50:
+    description: Max 50 generators
+    default: false
+  bentogens.max.100:
+    description: Max 100 generators
+    default: false
+  bentogens.max.unlimited:
+    description: Unlimited generators
+    default: false
