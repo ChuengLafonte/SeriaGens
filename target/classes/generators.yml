@@ -1,113 +1,418 @@
-# BentoGens Generator Configurations
+# ==========================================
+# BentoGens - Generators Configuration
+# 11 GENERATOR TIERS WITH CORRUPTION SYSTEM
+# ==========================================
 
-wheat_generator:
-  display-name: "&e&lWheat Generator"
-  interval: 20  # seconds
+# Tier 1: Coal Generator
+coal_gens:
+  display-name: "#FFFFFFCoal Generator"
+  material: COAL_BLOCK
+  interval: 50  # seconds
   
-  # Block material
-  material: HAY_BLOCK
+  # Corruption settings
+  corruption:
+    enabled: true
+    cost: 50.0      # Repair cost
+    chance: 5.0     # 5% chance to corrupt
   
   # Upgrade settings
   upgrade:
     enabled: true
-    next-tier: melon_generator
-    cost: 100.0
+    next-tier: iron_gens
+    cost: 1500.0
   
-  # Shop item
+  # Generator item
   item:
-    material: HAY_BLOCK
-    display-name: "&e&lWheat Generator"
-    amount: 1
+    material: COAL_BLOCK
+    display-name: "#FFFFFFCoal Generator"
     lore:
-      - "&7Tier: &f1"
-      - "&7Interval: &f20 seconds"
+      - "&7Generate coal every 50 seconds"
+      - "&7Value: &a$1 &7per drop"
       - ""
-      - "&e&lDrops:"
-      - "&7 • Wheat (70%)"
-      - "&7 • Hay Bale (30%)"
+      - "&eUpgrade Cost: &a$1,500"
+      - "&cRepair Cost: &c$50"
       - ""
-      - "&aPlace on your island to activate!"
+      - "&7&oPlace on your island to activate"
   
-  # Drops
+  # Possible drops
   drops:
-    wheat:
-      chance: 70
-      value: 5.0
+    coal:
+      chance: 100
+      sell-value: 1.0
       item:
-        material: WHEAT
-        amount: 1
-        display-name: "&eWheat"
+        material: COAL
+        display-name: "&fCoal &7(Value: &a$1&7)"
         lore:
-          - "&7From generator"
-    
-    hay:
-      chance: 30
-      value: 20.0
-      item:
-        material: HAY_BLOCK
-        amount: 1
-        display-name: "&eHay Bale"
-        lore:
-          - "&7From generator"
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
 
-melon_generator:
-  display-name: "&a&lMelon Generator"
-  interval: 18
-  material: MELON
+# Tier 2: Iron Generator
+iron_gens:
+  display-name: "#FFFFFFIron Generator"
+  material: IRON_BLOCK
+  interval: 45
+  
+  corruption:
+    enabled: true
+    cost: 200.0
+    chance: 6.0
   
   upgrade:
     enabled: true
-    next-tier: diamond_generator
-    cost: 250.0
+    next-tier: copper_gens
+    cost: 8000.0
   
   item:
-    material: MELON
-    display-name: "&a&lMelon Generator"
+    material: IRON_BLOCK
+    display-name: "#FFFFFFIron Generator"
     lore:
-      - "&7Tier: &f2"
-      - "&7Interval: &f18 seconds"
+      - "&7Generate iron every 45 seconds"
+      - "&7Value: &a$4 &7per drop"
       - ""
-      - "&aPlace on your island to activate!"
+      - "&eUpgrade Cost: &a$8,000"
+      - "&cRepair Cost: &c$200"
   
   drops:
-    melon_slice:
-      chance: 65
-      value: 8.0
+    iron:
+      chance: 100
+      sell-value: 4.0
       item:
-        material: MELON_SLICE
-        amount: 1
-    
-    melon_block:
-      chance: 35
-      value: 32.0
-      item:
-        material: MELON
-        amount: 1
+        material: IRON_INGOT
+        display-name: "&fIron Ingot &7(Value: &a$4&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
 
-diamond_generator:
-  display-name: "&b&lDiamond Generator"
-  interval: 30
-  material: DIAMOND_BLOCK
+# Tier 3: Copper Generator
+copper_gens:
+  display-name: "#FF6600Copper Generator"
+  material: COPPER_BLOCK
+  interval: 40
+  
+  corruption:
+    enabled: true
+    cost: 500.0
+    chance: 6.5
   
   upgrade:
-    enabled: false
+    enabled: true
+    next-tier: gold_gens
+    cost: 25000.0
+  
+  item:
+    material: COPPER_BLOCK
+    display-name: "#FF6600Copper Generator"
+    lore:
+      - "&7Generate copper every 40 seconds"
+      - "&7Value: &a$10 &7per drop"
+      - ""
+      - "&eUpgrade Cost: &a$25,000"
+      - "&cRepair Cost: &c$500"
+  
+  drops:
+    copper:
+      chance: 100
+      sell-value: 10.0
+      item:
+        material: COPPER_INGOT
+        display-name: "#FF6600Copper Ingot &7(Value: &a$10&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 4: Gold Generator
+gold_gens:
+  display-name: "#FFD700Gold Generator"
+  material: GOLD_BLOCK
+  interval: 35
+  
+  corruption:
+    enabled: true
+    cost: 1000.0
+    chance: 7.0
+  
+  upgrade:
+    enabled: true
+    next-tier: redstone_gens
+    cost: 75000.0
+  
+  item:
+    material: GOLD_BLOCK
+    display-name: "#FFD700Gold Generator"
+    lore:
+      - "&7Generate gold every 35 seconds"
+      - "&7Value: &a$22 &7per drop"
+      - ""
+      - "&eUpgrade Cost: &a$75,000"
+      - "&cRepair Cost: &c$1,000"
+  
+  drops:
+    gold:
+      chance: 100
+      sell-value: 22.0
+      item:
+        material: GOLD_INGOT
+        display-name: "#FFD700Gold Ingot &7(Value: &a$22&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 5: Redstone Generator
+redstone_gens:
+  display-name: "#FF0000Redstone Generator"
+  material: REDSTONE_BLOCK
+  interval: 32
+  
+  corruption:
+    enabled: true
+    cost: 2500.0
+    chance: 7.5
+  
+  upgrade:
+    enabled: true
+    next-tier: emerald_gens
+    cost: 200000.0
+  
+  item:
+    material: REDSTONE_BLOCK
+    display-name: "#FF0000Redstone Generator"
+    lore:
+      - "&7Generate redstone every 32 seconds"
+      - "&7Value: &a$45 &7per drop"
+      - ""
+      - "&eUpgrade Cost: &a$200,000"
+      - "&cRepair Cost: &c$2,500"
+  
+  drops:
+    redstone:
+      chance: 100
+      sell-value: 45.0
+      item:
+        material: REDSTONE
+        display-name: "#FF0000Redstone &7(Value: &a$45&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 6: Emerald Generator
+emerald_gens:
+  display-name: "#00FF00Emerald Generator"
+  material: EMERALD_BLOCK
+  interval: 30
+  
+  corruption:
+    enabled: true
+    cost: 5000.0
+    chance: 8.0
+  
+  upgrade:
+    enabled: true
+    next-tier: lapis_gens
+    cost: 550000.0
+  
+  item:
+    material: EMERALD_BLOCK
+    display-name: "#00FF00Emerald Generator"
+    lore:
+      - "&7Generate emerald every 30 seconds"
+      - "&7Value: &a$80 &7per drop"
+      - ""
+      - "&eUpgrade Cost: &a$550,000"
+      - "&cRepair Cost: &c$5,000"
+  
+  drops:
+    emerald:
+      chance: 100
+      sell-value: 80.0
+      item:
+        material: EMERALD
+        display-name: "#00FF00Emerald &7(Value: &a$80&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 7: Lapis Generator
+lapis_gens:
+  display-name: "#0000FFLapis Generator"
+  material: LAPIS_BLOCK
+  interval: 28
+  
+  corruption:
+    enabled: true
+    cost: 10000.0
+    chance: 8.5
+  
+  upgrade:
+    enabled: true
+    next-tier: diamond_gens
+    cost: 1250000.0
+  
+  item:
+    material: LAPIS_BLOCK
+    display-name: "#0000FFLapis Generator"
+    lore:
+      - "&7Generate lapis every 28 seconds"
+      - "&7Value: &a$125 &7per drop"
+      - ""
+      - "&eUpgrade Cost: &a$1,250,000"
+      - "&cRepair Cost: &c$10,000"
+  
+  drops:
+    lapis:
+      chance: 100
+      sell-value: 125.0
+      item:
+        material: LAPIS_LAZULI
+        display-name: "#0000FFLapis Lazuli &7(Value: &a$125&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 8: Diamond Generator
+diamond_gens:
+  display-name: "#00FFFFDiamond Generator"
+  material: DIAMOND_BLOCK
+  interval: 25
+  
+  corruption:
+    enabled: true
+    cost: 25000.0
+    chance: 9.0
+  
+  upgrade:
+    enabled: true
+    next-tier: debris_gens
+    cost: 3500000.0
   
   item:
     material: DIAMOND_BLOCK
-    display-name: "&b&lDiamond Generator"
+    display-name: "#00FFFFDiamond Generator"
     lore:
-      - "&7Tier: &fMAX"
-      - "&7Interval: &f30 seconds"
+      - "&7Generate diamond every 25 seconds"
+      - "&7Value: &a$180 &7per drop"
       - ""
-      - "&b&lDrops:"
-      - "&7 • Diamond (100%)"
-      - ""
-      - "&aPlace on your island to activate!"
+      - "&eUpgrade Cost: &a$3,500,000"
+      - "&cRepair Cost: &c$25,000"
   
   drops:
     diamond:
       chance: 100
-      value: 100.0
+      sell-value: 180.0
       item:
         material: DIAMOND
-        amount: 1
+        display-name: "#00FFFFDiamond &7(Value: &a$180&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 9: Netherite Debris Generator
+debris_gens:
+  display-name: "#8B4513Ancient Debris Generator"
+  material: ANCIENT_DEBRIS
+  interval: 22
+  
+  corruption:
+    enabled: true
+    cost: 50000.0
+    chance: 9.5
+  
+  upgrade:
+    enabled: true
+    next-tier: netherite_gens
+    cost: 8500000.0
+  
+  item:
+    material: ANCIENT_DEBRIS
+    display-name: "#8B4513Ancient Debris Generator"
+    lore:
+      - "&7Generate debris every 22 seconds"
+      - "&7Value: &a$230 &7per drop"
+      - ""
+      - "&eUpgrade Cost: &a$8,500,000"
+      - "&cRepair Cost: &c$50,000"
+  
+  drops:
+    debris:
+      chance: 100
+      sell-value: 230.0
+      item:
+        material: ANCIENT_DEBRIS
+        display-name: "#8B4513Ancient Debris &7(Value: &a$230&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 10: Netherite Generator
+netherite_gens:
+  display-name: "#36454FNetherite Generator"
+  material: NETHERITE_BLOCK
+  interval: 20
+  
+  corruption:
+    enabled: true
+    cost: 100000.0
+    chance: 10.0
+  
+  upgrade:
+    enabled: true
+    next-tier: deepslate_iron_gens
+    cost: 20000000.0
+  
+  item:
+    material: NETHERITE_BLOCK
+    display-name: "#36454FNetherite Generator"
+    lore:
+      - "&7Generate netherite every 20 seconds"
+      - "&7Value: &a$275 &7per drop"
+      - ""
+      - "&eUpgrade Cost: &a$20,000,000"
+      - "&cRepair Cost: &c$100,000"
+  
+  drops:
+    netherite:
+      chance: 100
+      sell-value: 275.0
+      item:
+        material: NETHERITE_INGOT
+        display-name: "#36454FNetherite Ingot &7(Value: &a$275&7)"
+        lore:
+          - "&7Generator drop"
+          - "&aUse /sell to sell"
+
+# Tier 11: Deepslate Iron Generator (MAX TIER)
+deepslate_iron_gens:
+  display-name: "#2F4F4FDeepslate Iron Generator"
+  material: DEEPSLATE_IRON_ORE
+  interval: 18
+  
+  corruption:
+    enabled: true
+    cost: 150000.0
+    chance: 10.0
+  
+  upgrade:
+    enabled: false  # MAX TIER - No upgrade
+    next-tier: none
+    cost: 0
+  
+  item:
+    material: DEEPSLATE_IRON_ORE
+    display-name: "#2F4F4FDeepslate Iron Generator"
+    lore:
+      - "&7Generate deepslate iron every 18 seconds"
+      - "&7Value: &a$300 &7per drop"
+      - ""
+      - "&6&l⭐ MAX TIER ⭐"
+      - "&cRepair Cost: &c$150,000"
+  
+  drops:
+    deepslate_iron:
+      chance: 100
+      sell-value: 300.0
+      item:
+        material: DEEPSLATE_IRON_ORE
+        display-name: "#2F4F4FDeepslate Iron Ore &7(Value: &a$300&7)"
+        lore:
+          - "&7Generator drop"
+          - "&6&lMAX TIER DROP"
+          - "&aUse /sell to sell"

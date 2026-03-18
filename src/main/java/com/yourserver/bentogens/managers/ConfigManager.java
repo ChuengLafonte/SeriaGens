@@ -1,134 +1,141 @@
 package com.yourserver.bentogens.managers;
 
 import com.yourserver.bentogens.BentoGens;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ConfigManager {
     
     private final BentoGens plugin;
-    private final Map<String, FileConfiguration> configs;
+    private FileConfiguration generatorsConfig;
+    
+    // HEX color pattern
+    private static final Pattern HEX_PATTERN = Pattern.compile("(?:&#|#)([A-Fa-f0-9]{6})");
     
     public ConfigManager(BentoGens plugin) {
         this.plugin = plugin;
-        this.configs = new HashMap<>();
     }
     
     /**
-     * Load all configuration files
+     * Load all config files
      */
     public void loadConfigs() {
-        // Save default configs
-        plugin.saveDefaultConfig();
-        saveResource("generators.yml");
-        
-        // Load configs
-        configs.put("config", plugin.getConfig());
-        configs.put("generators", loadConfig("generators.yml"));
-        
-        plugin.getLogger().info("Loaded " + configs.size() + " configuration files");
-    }
-    
-    /**
-     * Reload all configurations
-     */
-    public void reloadConfigs() {
+        // Reload main config
         plugin.reloadConfig();
-        configs.clear();
-        loadConfigs();
+        
+        // Load generators.yml
+        loadGeneratorsConfig();
+        
+        plugin.getLogger().info("Configuration loaded!");
     }
     
     /**
-     * Get a configuration file
+     * Load generators.yml
      */
-    public FileConfiguration getConfig(String name) {
-        return configs.getOrDefault(name, plugin.getConfig());
-    }
-    
-    /**
-     * Get generators configuration
-     */
-    public FileConfiguration getGeneratorsConfig() {
-        return getConfig("generators");
-    }
-    
-    /**
-     * Get message from config with color codes
-     */
-    public String getMessage(String path) {
-        String message = plugin.getConfig().getString("messages." + path);
-        if (message == null) {
-            return "§cMessage not found: " + path;
+    private void loadGeneratorsConfig() {
+        File file = new File(plugin.getDataFolder(), "generators.yml");
+        
+        if (!file.exists()) {
+            plugin.saveResource("generators.yml", false);
         }
         
-        // Replace prefix placeholder
-        String prefix = plugin.getConfig().getString("messages.prefix", "&6[BentoGens]");
-        message = message.replace("{prefix}", prefix);
-        
-        // Translate color codes
-        return colorize(message);
+        generatorsConfig = YamlConfiguration.loadConfiguration(file);
     }
     
     /**
-     * Get generator interval in seconds
+     * Get generators config
      */
-    public int getGeneratorInterval(String type) {
-        return getGeneratorsConfig().getInt(type + ".interval", 20);
+    public FileConfiguration getGeneratorsConfig() {
+        return generatorsConfig;
     }
     
     /**
-     * Get generator material name
+     * Get all generator types
+     */
+    public Set<String> getAllGeneratorTypes() {
+        return generatorsConfig.getKeys(false);
+    }
+    
+    /**
+     * Get generator material
      */
     public String getGeneratorMaterial(String type) {
-        return getGeneratorsConfig().getString(type + ".material", "HAY_BLOCK");
+        return generatorsConfig.getString(type + ".material", "STONE");
+    }
+    
+    /**
+     * Get generator interval
+     */
+    public int getGeneratorInterval(String type) {
+        return generatorsConfig.getInt(type + ".interval", 20);
+    }
+    
+    /**
+     * Get generator display name
+     */
+    public String getGeneratorDisplayName(String type) {
+        return colorize(generatorsConfig.getString(type + ".display-name", type));
     }
     
     /**
      * Check if generator type exists
      */
     public boolean generatorExists(String type) {
-        return getGeneratorsConfig().contains(type);
+        return generatorsConfig.contains(type);
     }
     
     /**
-     * Get all generator types
+     * Get message from config
      */
-    public java.util.Set<String> getAllGeneratorTypes() {
-        ConfigurationSection section = getGeneratorsConfig().getRoot();
-        return section != null ? section.getKeys(false) : new java.util.HashSet<>();
-    }
-    
-    /**
-     * Save resource from JAR to plugin folder
-     */
-    private void saveResource(String resourcePath) {
-        File file = new File(plugin.getDataFolder(), resourcePath);
-        if (!file.exists()) {
-            plugin.saveResource(resourcePath, false);
+    public String getMessage(String key) {
+        String msg = plugin.getConfig().getString("messages." + key);
+        
+        if (msg == null) {
+            return colorize("&c[BentoGens] Message not found: " + key);
         }
+        
+        return colorize(msg.replace("{prefix}", 
+            plugin.getConfig().getString("messages.prefix", "&6[BentoGens]")));
     }
     
     /**
-     * Load configuration file
+     * Colorize string with both legacy and HEX colors
      */
-    private FileConfiguration loadConfig(String fileName) {
-        File file = new File(plugin.getDataFolder(), fileName);
-        if (!file.exists()) {
-            plugin.saveResource(fileName, false);
+    public String colorize(String text) {
+        if (text == null) {
+            return "";
         }
-        return YamlConfiguration.loadConfiguration(file);
+        
+        // Process HEX colors first
+        Matcher matcher = HEX_PATTERN.matcher(text);
+        StringBuffer buffer = new StringBuffer();
+        
+        while (matcher.find()) {
+            String hex = matcher.group(1);
+            matcher.appendReplacement(buffer, net.md_5.bungee.api.ChatColor.of("#" + hex).toString());
+        }
+        matcher.appendTail(buffer);
+        
+        // Then process legacy colors
+        return ChatColor.translateAlternateColorCodes('&', buffer.toString());
     }
     
     /**
-     * Translate color codes (&-style to §)
+     * Colorize list
      */
-    public String colorize(String message) {
-        if (message == null) return "";
-        return message.replace('&', '§');
+    public List<String> colorize(List<String> list) {
+        List<String> colored = new ArrayList<>();
+        for (String line : list) {
+            colored.add(colorize(line));
+        }
+        return colored;
     }
 }

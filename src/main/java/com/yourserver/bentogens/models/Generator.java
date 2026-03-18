@@ -13,6 +13,8 @@ public class Generator {
     private String type;
     private long lastDrop;
     private final long placedAt;
+    private boolean corrupted;  // NEW: Corruption status
+    private long lastCorruptionCheck;  // NEW: Last time checked for corruption
     
     public Generator(String id, UUID owner, Location location, String type) {
         this.id = id;
@@ -21,12 +23,34 @@ public class Generator {
         this.type = type;
         this.lastDrop = System.currentTimeMillis();
         this.placedAt = System.currentTimeMillis();
+        this.corrupted = false;
+        this.lastCorruptionCheck = System.currentTimeMillis();
+    }
+    
+    /**
+     * Full constructor with all fields (for database loading)
+     */
+    public Generator(String id, UUID owner, Location location, String type, 
+                    long lastDrop, long placedAt, boolean corrupted, long lastCorruptionCheck) {
+        this.id = id;
+        this.owner = owner;
+        this.location = location;
+        this.type = type;
+        this.lastDrop = lastDrop;
+        this.placedAt = placedAt;
+        this.corrupted = corrupted;
+        this.lastCorruptionCheck = lastCorruptionCheck;
     }
     
     /**
      * Check if generator can drop now based on interval
+     * Returns false if corrupted!
      */
     public boolean canDrop(int intervalSeconds) {
+        if (corrupted) {
+            return false; // Corrupted generators don't drop!
+        }
+        
         long elapsed = System.currentTimeMillis() - lastDrop;
         return elapsed >= (intervalSeconds * 1000L);
     }
@@ -36,6 +60,21 @@ public class Generator {
      */
     public void markDropped() {
         this.lastDrop = System.currentTimeMillis();
+    }
+    
+    /**
+     * Check if generator should be tested for corruption
+     */
+    public boolean shouldCheckCorruption(long intervalMinutes) {
+        long elapsed = System.currentTimeMillis() - lastCorruptionCheck;
+        return elapsed >= (intervalMinutes * 60 * 1000L);
+    }
+    
+    /**
+     * Mark corruption check time
+     */
+    public void markCorruptionCheck() {
+        this.lastCorruptionCheck = System.currentTimeMillis();
     }
     
     /**
@@ -84,6 +123,22 @@ public class Generator {
         return placedAt;
     }
     
+    public boolean isCorrupted() {
+        return corrupted;
+    }
+    
+    public void setCorrupted(boolean corrupted) {
+        this.corrupted = corrupted;
+    }
+    
+    public long getLastCorruptionCheck() {
+        return lastCorruptionCheck;
+    }
+    
+    public void setLastCorruptionCheck(long lastCorruptionCheck) {
+        this.lastCorruptionCheck = lastCorruptionCheck;
+    }
+    
     @Override
     public String toString() {
         return "Generator{" +
@@ -91,6 +146,7 @@ public class Generator {
                 ", owner=" + owner +
                 ", location=" + getLocationString() +
                 ", type='" + type + '\'' +
+                ", corrupted=" + corrupted +
                 '}';
     }
 }

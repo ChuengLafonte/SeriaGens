@@ -1,6 +1,7 @@
 package com.yourserver.bentogens.listeners;
 
 import com.yourserver.bentogens.BentoGens;
+import com.yourserver.bentogens.gui.UpgradeGUI;
 import com.yourserver.bentogens.models.Generator;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -10,8 +11,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -111,6 +114,44 @@ public class GeneratorListener implements Listener {
                 player.getWorld().dropItemNaturally(player.getLocation(), generatorItem);
             }
         }
+    }
+    
+    /**
+     * Handle right-click on generator to open GUI
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onGeneratorRightClick(PlayerInteractEvent event) {
+        // Only handle right-click on block
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        
+        Block block = event.getClickedBlock();
+        if (block == null) {
+            return;
+        }
+        
+        Location location = block.getLocation();
+        Generator gen = plugin.getGeneratorManager().getGenerator(location);
+        
+        // Not a generator
+        if (gen == null) {
+            return;
+        }
+        
+        Player player = event.getPlayer();
+        
+        // Check ownership or admin permission
+        if (!gen.getOwner().equals(player.getUniqueId()) 
+                && !player.hasPermission("bentogens.admin")) {
+            return;
+        }
+        
+        // Cancel event to prevent block interaction
+        event.setCancelled(true);
+        
+        // Open upgrade/repair GUI
+        new UpgradeGUI(plugin, player, gen).open();
     }
     
     /**

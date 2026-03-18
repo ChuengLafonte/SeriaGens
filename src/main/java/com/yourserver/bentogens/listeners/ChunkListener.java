@@ -1,16 +1,17 @@
 package com.yourserver.bentogens.listeners;
 
 import com.yourserver.bentogens.BentoGens;
-import com.yourserver.bentogens.models.Generator;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 
+/**
+ * Listen for chunk load/unload events
+ * CRITICAL: Restore generator blocks when chunks load!
+ */
 public class ChunkListener implements Listener {
     
     private final BentoGens plugin;
@@ -20,54 +21,28 @@ public class ChunkListener implements Listener {
     }
     
     /**
-     * Restore generator blocks when chunk loads
-     * This helps fix blocks that became vanilla
+     * When chunk loads, restore any generator blocks in it
+     * This is the FINAL safety net - blocks MUST be correct when chunk loads!
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkLoad(ChunkLoadEvent event) {
-        if (!plugin.getConfig().getBoolean("generators.restore-on-chunk-load", true)) {
-            return;
-        }
-        
         Chunk chunk = event.getChunk();
         
-        // Check all generators in this chunk
-        for (Generator gen : plugin.getGeneratorManager().getAllGenerators()) {
-            Location loc = gen.getLocation();
-            
-            // Check if generator is in this chunk
-            if (loc.getWorld().equals(chunk.getWorld()) &&
-                loc.getBlockX() >> 4 == chunk.getX() &&
-                loc.getBlockZ() >> 4 == chunk.getZ()) {
-                
-                // Restore block if wrong type
-                restoreBlock(gen);
-            }
+        // Restore generators in this chunk
+        int restored = plugin.getGeneratorManager().restoreChunkGenerators(chunk);
+        
+        if (restored > 0) {
+            plugin.getLogger().info("✅ Chunk " + chunk.getX() + "," + chunk.getZ() + 
+                " in " + chunk.getWorld().getName() + ": Restored " + restored + " generator blocks");
         }
     }
     
     /**
-     * Restore generator block to correct type
+     * Optional: Save generators when chunk unloads
      */
-    private void restoreBlock(Generator gen) {
-        Location loc = gen.getLocation();
-        Block block = loc.getBlock();
-        
-        String materialName = plugin.getConfigManager().getGeneratorMaterial(gen.getType());
-        Material correctMaterial = Material.matchMaterial(materialName);
-        
-        if (correctMaterial == null) {
-            return;
-        }
-        
-        // Only restore if block is wrong type
-        if (block.getType() != correctMaterial) {
-            block.setType(correctMaterial);
-            
-            if (plugin.getConfig().getBoolean("debug.log-block-restore", false)) {
-                plugin.getLogger().info("Restored generator block at " + 
-                    loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
-            }
-        }
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        // Could save generators here if needed
+        // For now, auto-save task handles this
     }
 }

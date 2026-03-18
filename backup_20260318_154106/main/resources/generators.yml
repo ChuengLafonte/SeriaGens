@@ -1,0 +1,407 @@
+# ==========================================
+# BentoGens Generator Configurations
+# Compatible with NextGens format
+# HEX COLORS SUPPORTED: &#RRGGBB
+# ==========================================
+
+coal_gens:
+  display-name: "&#3C3C3C⛏ Coal Generator"
+  interval: 50  # seconds
+  
+  # Block material
+  material: COAL_ORE
+  
+  # Upgrade settings
+  upgrade:
+    enabled: true
+    next-tier: iron_gens
+    cost: 1500.0
+  
+  # Shop item configuration
+  item:
+    material: COAL_ORE
+    amount: 1
+    display-name: "&#3C3C3C&l⛏ COAL GENERATOR"
+    lore:
+      - "&8Tier I — Basic Mineral"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b50s"
+      - " &8• &fYield: &eCoal Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●1,500"
+      - ""
+      - "&8&oPlace to begin your journey..."
+  
+  # Drops configuration
+  drops:
+    coal_chunk:
+      chance: 100
+      value: 1.0
+      item:
+        material: BLACK_DYE
+        amount: 1
+        display-name: "&#3C3C3CCoal Chunk"
+        lore:
+          - "&7Market Value: &a●1"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+iron_gens:
+  display-name: "&#bdc3c7⛏ Iron Generator"
+  interval: 45
+  material: IRON_ORE
+  
+  upgrade:
+    enabled: true
+    next-tier: copper_gens
+    cost: 8000.0
+  
+  item:
+    material: IRON_ORE
+    display-name: "&#bdc3c7&l⛏ IRON GENERATOR"
+    lore:
+      - "&8Tier II — Refined Ore"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b45s"
+      - " &8• &fYield: &eIron Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●8,000"
+  
+  drops:
+    iron_chunk:
+      chance: 100
+      value: 4.0
+      item:
+        material: LIGHT_GRAY_DYE
+        amount: 1
+        display-name: "&#afb5a8Iron Chunk"
+        lore:
+          - "&7Market Value: &a●4"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+copper_gens:
+  display-name: "&#d35400⛏ Copper Generator"
+  interval: 40
+  material: COPPER_ORE
+  
+  upgrade:
+    enabled: true
+    next-tier: gold_gens
+    cost: 25000.0
+  
+  item:
+    material: COPPER_ORE
+    display-name: "&#d35400&l⛏ COPPER GENERATOR"
+    lore:
+      - "&8Tier III — Industrial Metal"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b40s"
+      - " &8• &fYield: &eCopper Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●25,000"
+  
+  drops:
+    copper_chunk:
+      chance: 100
+      value: 10.0
+      item:
+        material: ORANGE_DYE
+        amount: 1
+        display-name: "&#cc3a00Copper Chunk"
+        lore:
+          - "&7Market Value: &a●10"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+gold_gens:
+  display-name: "&#f1c40f⛏ Gold Generator"
+  interval: 35
+  material: GOLD_ORE
+  
+  upgrade:
+    enabled: true
+    next-tier: redstone_gens
+    cost: 75000.0
+  
+  item:
+    material: GOLD_ORE
+    display-name: "&#f1c40f&l⛏ GOLD GENERATOR"
+    lore:
+      - "&8Tier IV — Noble Metal"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b35s"
+      - " &8• &fYield: &eGold Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●75,000"
+  
+  drops:
+    gold_chunk:
+      chance: 100
+      value: 22.0
+      item:
+        material: YELLOW_DYE
+        amount: 1
+        display-name: "&#FFD700Gold Chunk"
+        lore:
+          - "&7Market Value: &a●22"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+redstone_gens:
+  display-name: "&#e74c3c⛏ Redstone Generator"
+  interval: 32
+  material: REDSTONE_ORE
+  
+  upgrade:
+    enabled: true
+    next-tier: emerald_gens
+    cost: 200000.0
+  
+  item:
+    material: REDSTONE_ORE
+    display-name: "&#e74c3c&l⛏ REDSTONE GENERATOR"
+    lore:
+      - "&8Tier V — Energy Source"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b32s"
+      - " &8• &fYield: &eRedstone Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●200,000"
+  
+  drops:
+    redstone_chunk:
+      chance: 100
+      value: 45.0
+      item:
+        material: RED_DYE
+        amount: 1
+        display-name: "&#b22222Redstone Chunk"
+        lore:
+          - "&7Market Value: &a●45"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+emerald_gens:
+  display-name: "&#2ecc71⛏ Emerald Generator"
+  interval: 30
+  material: EMERALD_ORE
+  
+  upgrade:
+    enabled: true
+    next-tier: lapis_gens
+    cost: 550000.0
+  
+  item:
+    material: EMERALD_ORE
+    display-name: "&#2ecc71&l⛏ EMERALD GENERATOR"
+    lore:
+      - "&8Tier VI — Trading Gem"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b30s"
+      - " &8• &fYield: &eEmerald Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●550,000"
+  
+  drops:
+    emerald_chunk:
+      chance: 100
+      value: 80.0
+      item:
+        material: LIME_DYE
+        amount: 1
+        display-name: "&#50C878Emerald Chunk"
+        lore:
+          - "&7Market Value: &a●80"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+lapis_gens:
+  display-name: "&#3498db⛏ Lapis Generator"
+  interval: 28
+  material: LAPIS_ORE
+  
+  upgrade:
+    enabled: true
+    next-tier: diamond_gens
+    cost: 1250000.0
+  
+  item:
+    material: LAPIS_ORE
+    display-name: "&#3498db&l⛏ LAPIS GENERATOR"
+    lore:
+      - "&8Tier VII — Enchanting Base"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b28s"
+      - " &8• &fYield: &eLapis Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●1,250,000"
+  
+  drops:
+    lapis_chunk:
+      chance: 100
+      value: 125.0
+      item:
+        material: BLUE_DYE
+        amount: 1
+        display-name: "&#26619CLapis Chunk"
+        lore:
+          - "&7Market Value: &a●125"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+diamond_gens:
+  display-name: "&#00d2ff⛏ Diamond Generator"
+  interval: 25
+  material: DIAMOND_ORE
+  
+  upgrade:
+    enabled: true
+    next-tier: debris_gens
+    cost: 3500000.0
+  
+  item:
+    material: DIAMOND_ORE
+    display-name: "&#00d2ff&l⛏ DIAMOND GENERATOR"
+    lore:
+      - "&8Tier VIII — High Grade"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b25s"
+      - " &8• &fYield: &eDiamond Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●3,500,000"
+  
+  drops:
+    diamond_chunk:
+      chance: 100
+      value: 180.0
+      item:
+        material: LIGHT_BLUE_DYE
+        amount: 1
+        display-name: "&#3EF2F2Diamond Chunk"
+        lore:
+          - "&7Market Value: &a●180"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+debris_gens:
+  display-name: "&#a8e063⛏ Ancient Generator"
+  interval: 22
+  material: ANCIENT_DEBRIS
+  
+  upgrade:
+    enabled: true
+    next-tier: netherite_gens
+    cost: 8500000.0
+  
+  item:
+    material: ANCIENT_DEBRIS
+    display-name: "&#a8e063&l⛏ ANCIENT GENERATOR"
+    lore:
+      - "&8Tier IX — Ancient Treasure"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b22s"
+      - " &8• &fYield: &eDebris Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●8,500,000"
+  
+  drops:
+    debris_chunk:
+      chance: 100
+      value: 230.0
+      item:
+        material: NETHERITE_SCRAP
+        amount: 1
+        display-name: "&#a67c52Debris Chunk"
+        lore:
+          - "&7Market Value: &a●230"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+netherite_gens:
+  display-name: "&#232526⛏ Netherite Generator"
+  interval: 20
+  material: NETHERITE_BLOCK
+  
+  upgrade:
+    enabled: true
+    next-tier: deepslate_iron_gens
+    cost: 20000000.0
+  
+  item:
+    material: NETHERITE_BLOCK
+    display-name: "&#232526&l⛏ NETHERITE GENERATOR"
+    lore:
+      - "&8Tier X — Ultimate Gear"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b20s"
+      - " &8• &fYield: &eNetherite Chunk"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &a●20,000,000"
+  
+  drops:
+    netherite_chunk:
+      chance: 100
+      value: 275.0
+      item:
+        material: NETHER_BRICK
+        amount: 1
+        display-name: "&#4C4C4CNetherite Chunk"
+        lore:
+          - "&7Market Value: &a●275"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"
+
+deepslate_iron_gens:
+  display-name: "&#434343⛏ Deepslate Generator"
+  interval: 18
+  material: DEEPSLATE_IRON_ORE
+  
+  upgrade:
+    enabled: false  # MAX TIER
+  
+  item:
+    material: DEEPSLATE_IRON_ORE
+    display-name: "&#434343&l⛏ DEEPSLATE GENERATOR"
+    lore:
+      - "&8Tier XI — Abyssal Resource"
+      - ""
+      - "&#D8A073&l✨ STATISTIK GEN"
+      - " &8• &fSpeed: &b18s"
+      - " &8• &fYield: &eDeepslate Iron"
+      - ""
+      - "&#84fab0&l💰 EKONOMI"
+      - " &8• &fNext Upgrade: &7&nMAX TIER"
+  
+  drops:
+    deepslate_iron_chunk:
+      chance: 100
+      value: 300.0
+      item:
+        material: IRON_NUGGET
+        amount: 1
+        display-name: "&#635f5fDeepslate Iron Chunk"
+        lore:
+          - "&7Market Value: &a●300"
+          - ""
+          - "&#ff7f17&l⚡ Raw Material"

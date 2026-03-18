@@ -1,13 +1,19 @@
 package com.yourserver.bentogens;
 
+import com.yourserver.bentogens.commands.GensetCommand;
 import com.yourserver.bentogens.commands.MainCommand;
 import com.yourserver.bentogens.commands.ShopCommand;
-import com.yourserver.bentogens.integration.BentoBoxIntegration;  // ← HARUS INI!
+import com.yourserver.bentogens.integration.BentoBoxIntegration;
 import com.yourserver.bentogens.listeners.ChunkListener;
+import com.yourserver.bentogens.listeners.GUIListener;
 import com.yourserver.bentogens.listeners.GeneratorListener;
+import com.yourserver.bentogens.listeners.WorldLoadListener;
 import com.yourserver.bentogens.managers.ConfigManager;
+import com.yourserver.bentogens.managers.CorruptionManager;
 import com.yourserver.bentogens.managers.DatabaseManager;
 import com.yourserver.bentogens.managers.GeneratorManager;
+import net.milkbowl.vault.economy.Economy;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class BentoGens extends JavaPlugin {
@@ -16,11 +22,16 @@ public final class BentoGens extends JavaPlugin {
     
     // BentoBox integration (optional)
     private Object bentoBox;
+    private BentoBoxIntegration bentoBoxIntegration;
+    
+    // Economy (Vault)
+    private Economy economy;
     
     // Managers
     private ConfigManager configManager;
     private DatabaseManager databaseManager;
     private GeneratorManager generatorManager;
+    private CorruptionManager corruptionManager;
     
     @Override
     public void onEnable() {
@@ -32,6 +43,14 @@ public final class BentoGens extends JavaPlugin {
         getLogger().info("========================================");
         getLogger().info("  BentoGens v" + getDescription().getVersion());
         getLogger().info("========================================");
+        
+        // Setup economy (Vault)
+        if (!setupEconomy()) {
+            getLogger().severe("Vault not found! Economy features will be disabled.");
+            getLogger().severe("Download Vault from: https://www.spigotmc.org/resources/vault.34315/");
+        } else {
+            getLogger().info("Hooked into Vault Economy");
+        }
         
         // Check if BentoBox is available
         if (getServer().getPluginManager().getPlugin("BentoBox") != null) {
@@ -57,6 +76,7 @@ public final class BentoGens extends JavaPlugin {
         databaseManager.initialize();
         
         generatorManager = new GeneratorManager(this);
+        corruptionManager = new CorruptionManager(this);
         
         // Load generators from database
         generatorManager.loadGenerators();
@@ -73,21 +93,29 @@ public final class BentoGens extends JavaPlugin {
         getLogger().info("Starting background tasks...");
         startTasks();
         
+        // Start corruption system
+        corruptionManager.startCorruptionTask();
+        
         getLogger().info("========================================");
         getLogger().info("  Plugin enabled successfully!");
         getLogger().info("  Generators loaded: " + generatorManager.getAllGenerators().size());
+        getLogger().info("  Economy: " + (economy != null ? "Enabled" : "Disabled"));
+        getLogger().info("  BentoBox: " + (bentoBox != null ? "Enabled" : "Disabled"));
+        getLogger().info("  Corruption: " + 
+            (getConfig().getBoolean("corruption.enabled") ? "Enabled" : "Disabled"));
         getLogger().info("========================================");
     }
     
     @Override
     public void onDisable() {
-        // Save all data
+        // CRITICAL: Save all data SYNCHRONOUSLY before closing database!
         if (generatorManager != null) {
             getLogger().info("Saving all generators...");
-            generatorManager.saveAll();
+            generatorManager.saveAllSync();  // ← SYNC save!
+            getLogger().info("All generators saved!");
         }
         
-        // Close database
+        // NOW it's safe to close database
         if (databaseManager != null) {
             getLogger().info("Closing database...");
             databaseManager.close();
@@ -102,18 +130,22 @@ public final class BentoGens extends JavaPlugin {
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new GeneratorListener(this), this);
         getServer().getPluginManager().registerEvents(new ChunkListener(this), this);
+        getServer().getPluginManager().registerEvents(new WorldLoadListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(), this);
         
-        // Register BentoBox integration if available
-        if (bentoBox != null) {
+        // Initialize BentoBox integration (but DON'T register as event listener!)
+        if (bentoBox != null && getConfig().getBoolean("bentobox.enabled", true)) {
             try {
-                BentoBoxIntegration integration = new BentoBoxIntegration(this, bentoBox);
-                getServer().getPluginManager().registerEvents(integration, this);
-                getLogger().info("BentoBox integration enabled via reflection!");
+                bentoBoxIntegration = new BentoBoxIntegration(this, bentoBox);
+                getLogger().info("BentoBox integration enabled (static mode)!");
             } catch (Exception e) {
-                getLogger().warning("Failed to initialize BentoBox integration: " + e.getMessage());
+                getLogger().warning("Failed to enable BentoBox integration: " + e.getMessage());
+                getLogger().info("Island features will still work via static methods.");
             }
-        } else {
+        } else if (bentoBox == null) {
             getLogger().info("BentoBox not found - island features disabled");
+        } else {
+            getLogger().info("BentoBox integration disabled in config");
         }
     }
     
@@ -124,12 +156,14 @@ public final class BentoGens extends JavaPlugin {
         getCommand("bentogens").setExecutor(new MainCommand(this));
         getCommand("bentogens").setTabCompleter(new MainCommand(this));
         getCommand("genshop").setExecutor(new ShopCommand(this));
+        getCommand("genset").setExecutor(new GensetCommand(this));
+        getCommand("genset").setTabCompleter(new GensetCommand(this));
         
         getLogger().info("Commands registered!");
     }
     
     /**
-     * Start background tasks
+     * Start background tasks with AGGRESSIVE block restoration
      */
     private void startTasks() {
         // Generator tick task (every second)
@@ -142,13 +176,57 @@ public final class BentoGens extends JavaPlugin {
             generatorManager.saveAll();
         }, 6000L, 6000L);
         
-        // Delayed restoration task (5 seconds after enable)
+        // STAGE 1: Initial restoration (5 seconds after enable)
         getServer().getScheduler().runTaskLater(this, () -> {
             int restored = generatorManager.restoreAllBlocks();
             if (restored > 0) {
-                getLogger().info("Restored " + restored + " generator blocks after startup!");
+                getLogger().info("✅ Stage 1: Restored " + restored + " generator blocks (5s after enable)");
             }
         }, 100L);
+        
+        // STAGE 2: Secondary restoration (30 seconds after enable - for late-loading worlds)
+        getServer().getScheduler().runTaskLater(this, () -> {
+            int restored = generatorManager.restoreAllBlocks();
+            if (restored > 0) {
+                getLogger().info("✅ Stage 2: Restored " + restored + " generator blocks (30s after enable)");
+            }
+        }, 600L);
+        
+        // STAGE 3: Tertiary restoration (60 seconds after enable - final safety net)
+        getServer().getScheduler().runTaskLater(this, () -> {
+            int restored = generatorManager.restoreAllBlocks();
+            if (restored > 0) {
+                getLogger().info("✅ Stage 3: Restored " + restored + " generator blocks (60s after enable)");
+            }
+        }, 1200L);
+        
+        // STAGE 4: Periodic restoration check (every 5 minutes)
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            int restored = generatorManager.restoreAllBlocks();
+            if (restored > 0) {
+                getLogger().warning("⚠ Periodic check: Restored " + restored + " generator blocks!");
+            }
+        }, 6000L, 6000L); // Every 5 minutes
+    }
+    
+    /**
+     * Setup Vault Economy
+     */
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        
+        RegisteredServiceProvider<Economy> rsp = getServer()
+            .getServicesManager()
+            .getRegistration(Economy.class);
+        
+        if (rsp == null) {
+            return false;
+        }
+        
+        economy = rsp.getProvider();
+        return economy != null;
     }
     
     // Getters
@@ -158,6 +236,14 @@ public final class BentoGens extends JavaPlugin {
     
     public Object getBentoBox() {
         return bentoBox;
+    }
+    
+    public BentoBoxIntegration getBentoBoxIntegration() {
+        return bentoBoxIntegration;
+    }
+    
+    public Economy getEconomy() {
+        return economy;
     }
     
     public ConfigManager getConfigManager() {
@@ -170,5 +256,9 @@ public final class BentoGens extends JavaPlugin {
     
     public GeneratorManager getGeneratorManager() {
         return generatorManager;
+    }
+    
+    public CorruptionManager getCorruptionManager() {
+        return corruptionManager;
     }
 }
