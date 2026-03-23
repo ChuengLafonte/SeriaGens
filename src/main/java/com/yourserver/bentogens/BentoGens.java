@@ -1,43 +1,51 @@
 package com.yourserver.bentogens;
 
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import com.yourserver.bentogens.commands.EventCommand;
 import com.yourserver.bentogens.commands.GensetCommand;
 import com.yourserver.bentogens.commands.MainCommand;
+import com.yourserver.bentogens.commands.SellCommand;
 import com.yourserver.bentogens.commands.ShopCommand;
 import com.yourserver.bentogens.integration.BentoBoxIntegration;
 import com.yourserver.bentogens.listeners.ChunkListener;
 import com.yourserver.bentogens.listeners.GUIListener;
 import com.yourserver.bentogens.listeners.GeneratorListener;
+import com.yourserver.bentogens.listeners.SellWandListener;
 import com.yourserver.bentogens.listeners.WorldLoadListener;
 import com.yourserver.bentogens.managers.ConfigManager;
 import com.yourserver.bentogens.managers.CorruptionManager;
 import com.yourserver.bentogens.managers.DatabaseManager;
+import com.yourserver.bentogens.managers.EventManager;
 import com.yourserver.bentogens.managers.GeneratorManager;
+import com.yourserver.bentogens.managers.RequirementsChecker;
+import com.yourserver.bentogens.managers.SellManager;
+
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.plugin.RegisteredServiceProvider;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public final class BentoGens extends JavaPlugin {
     
     private static BentoGens instance;
     
-    // BentoBox integration (optional)
     private Object bentoBox;
     private BentoBoxIntegration bentoBoxIntegration;
-    
-    // Economy (Vault)
     private Economy economy;
     
-    // Managers
     private ConfigManager configManager;
     private DatabaseManager databaseManager;
     private GeneratorManager generatorManager;
     private CorruptionManager corruptionManager;
-    
+    private SellManager sellManager;
+    private RequirementsChecker requirementsChecker;
+    private EventManager eventManager;
+
     @Override
     public void onEnable() {
         instance = this;
         
-        // Save default config
         saveDefaultConfig();
         
         getLogger().info("========================================");
@@ -78,16 +86,36 @@ public final class BentoGens extends JavaPlugin {
         generatorManager = new GeneratorManager(this);
         corruptionManager = new CorruptionManager(this);
         
-        // Load generators from database
-        generatorManager.loadGenerators();
-        
-        // Register listeners
+        // Register listeners FIRST (to catch world loads)
         getLogger().info("Registering event listeners...");
         registerListeners();
         
         // Register commands
         getLogger().info("Registering commands...");
         registerCommands();
+        
+        // ========================================
+        // CRITICAL: Delayed generator loading
+        // Wait for BentoBox to finish loading worlds
+        // ========================================
+        
+        // Check if worlds already loaded
+        World caveworld = Bukkit.getWorld("caveblock-world");
+        
+        if (caveworld != null) {
+            // Worlds already loaded - load immediately
+            getLogger().info("Worlds already loaded - loading generators immediately");
+            generatorManager.loadGenerators();
+        } else {
+            // Worlds not loaded yet - wait
+            getLogger().info("Waiting for BentoBox to create worlds...");
+            
+            // Try multiple times with increasing delays
+            scheduleDelayedLoad(20L);   // 1 second
+            scheduleDelayedLoad(60L);   // 3 seconds
+            scheduleDelayedLoad(100L);  // 5 seconds
+            scheduleDelayedLoad(200L);  // 10 seconds
+        }
         
         // Start background tasks
         getLogger().info("Starting background tasks...");
@@ -98,17 +126,44 @@ public final class BentoGens extends JavaPlugin {
         
         getLogger().info("========================================");
         getLogger().info("  Plugin enabled successfully!");
-        getLogger().info("  Generators loaded: " + generatorManager.getAllGenerators().size());
         getLogger().info("  Economy: " + (economy != null ? "Enabled" : "Disabled"));
         getLogger().info("  BentoBox: " + (bentoBox != null ? "Enabled" : "Disabled"));
         getLogger().info("  Corruption: " + 
             (getConfig().getBoolean("corruption.enabled") ? "Enabled" : "Disabled"));
         getLogger().info("========================================");
+
+        sellManager = new SellManager(this);
+        requirementsChecker = new RequirementsChecker(this);
+        
+        // Initialize event system - NEW! ✅
+        eventManager = new EventManager(this);
+    }
+    
+    /**
+     * Schedule delayed generator loading
+     */
+    private void scheduleDelayedLoad(long delay) {
+        getServer().getScheduler().runTaskLater(this, () -> {
+            // Check if already loaded
+            if (generatorManager.getAllGenerators().size() > 0) {
+                return; // Already loaded
+            }
+            
+            // Check if world exists now
+            World world = Bukkit.getWorld("caveblock-world");
+            if (world != null) {
+                getLogger().info("World 'caveblock-world' detected - loading generators now!");
+                generatorManager.loadGenerators();
+                
+                int loaded = generatorManager.getAllGenerators().size();
+                getLogger().info("Successfully loaded " + loaded + " generators");
+            }
+        }, delay);
     }
     
     @Override
     public void onDisable() {
-        // CRITICAL: Save all data SYNCHRONOUSLY before closing database!
+        // CRITICAL: Save SYNCHRONOUSLY before closing database!
         if (generatorManager != null) {
             getLogger().info("Saving all generators...");
             generatorManager.saveAllSync();  // ← SYNC save!
@@ -132,7 +187,8 @@ public final class BentoGens extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChunkListener(this), this);
         getServer().getPluginManager().registerEvents(new WorldLoadListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
-        
+        getServer().getPluginManager().registerEvents(new SellWandListener(this), this);
+
         // Initialize BentoBox integration (but DON'T register as event listener!)
         if (bentoBox != null && getConfig().getBoolean("bentobox.enabled", true)) {
             try {
@@ -147,6 +203,7 @@ public final class BentoGens extends JavaPlugin {
         } else {
             getLogger().info("BentoBox integration disabled in config");
         }
+
     }
     
     /**
@@ -158,7 +215,13 @@ public final class BentoGens extends JavaPlugin {
         getCommand("genshop").setExecutor(new ShopCommand(this));
         getCommand("genset").setExecutor(new GensetCommand(this));
         getCommand("genset").setTabCompleter(new GensetCommand(this));
+        getCommand("gensell").setExecutor(new SellCommand(this));
+        getCommand("gensell").setTabCompleter(new SellCommand(this));
         
+        // Event command - NEW! ✅
+        getCommand("event").setExecutor(new EventCommand(this));
+        getCommand("event").setTabCompleter(new EventCommand(this));
+
         getLogger().info("Commands registered!");
     }
     
@@ -228,8 +291,9 @@ public final class BentoGens extends JavaPlugin {
         economy = rsp.getProvider();
         return economy != null;
     }
-    
+
     // Getters
+    
     public static BentoGens getInstance() {
         return instance;
     }
@@ -260,5 +324,17 @@ public final class BentoGens extends JavaPlugin {
     
     public CorruptionManager getCorruptionManager() {
         return corruptionManager;
+    }
+
+    public SellManager getSellManager() {
+        return sellManager;
+    }
+
+    public RequirementsChecker getRequirementsChecker() {
+        return requirementsChecker;
+    }
+
+    public EventManager getEventManager() {
+        return this.eventManager;
     }
 }

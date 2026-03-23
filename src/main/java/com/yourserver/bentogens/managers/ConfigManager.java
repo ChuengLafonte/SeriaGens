@@ -1,16 +1,17 @@
 package com.yourserver.bentogens.managers;
 
-import com.yourserver.bentogens.BentoGens;
-import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import com.yourserver.bentogens.BentoGens;
 
 public class ConfigManager {
     
@@ -19,6 +20,7 @@ public class ConfigManager {
     
     // HEX color pattern
     private static final Pattern HEX_PATTERN = Pattern.compile("(?:&#|#)([A-Fa-f0-9]{6})");
+    private FileConfiguration eventsConfig;
     
     public ConfigManager(BentoGens plugin) {
         this.plugin = plugin;
@@ -34,6 +36,9 @@ public class ConfigManager {
         // Load generators.yml
         loadGeneratorsConfig();
         
+        // Load events.yml - NEW! ✅
+        loadEventsConfig();
+        
         plugin.getLogger().info("Configuration loaded!");
     }
     
@@ -48,6 +53,19 @@ public class ConfigManager {
         }
         
         generatorsConfig = YamlConfiguration.loadConfiguration(file);
+    }
+    
+    /**
+     * Load events.yml - NEW! ✅
+     */
+    private void loadEventsConfig() {
+        File file = new File(plugin.getDataFolder(), "events.yml");
+        
+        if (!file.exists()) {
+            plugin.saveResource("events.yml", false);
+        }
+        
+        eventsConfig = YamlConfiguration.loadConfiguration(file);
     }
     
     /**
@@ -68,7 +86,7 @@ public class ConfigManager {
      * Get generator material
      */
     public String getGeneratorMaterial(String type) {
-        return generatorsConfig.getString(type + ".material", "STONE");
+        return generatorsConfig.getString(type + ".item.material", "STONE");
     }
     
     /**
@@ -137,5 +155,9 @@ public class ConfigManager {
             colored.add(colorize(line));
         }
         return colored;
+    }
+
+    public FileConfiguration getEventsConfig() {
+        return this.eventsConfig;
     }
 }

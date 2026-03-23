@@ -1,7 +1,14 @@
 package com.yourserver.bentogens.managers;
 
-import com.yourserver.bentogens.BentoGens;
-import com.yourserver.bentogens.models.Generator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -16,8 +23,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import com.yourserver.bentogens.BentoGens;
+import com.yourserver.bentogens.models.Generator;
 
 public class GeneratorManager {
     
@@ -27,7 +34,11 @@ public class GeneratorManager {
     
     // Track pending restorations by world name AND full generator data
     private final Map<String, List<PendingGenerator>> pendingRestorations;
-    
+    private int dropMultiplier = 1;
+    private double speedMultiplier = 1.0;
+    private int tierBoost = 0;
+    private boolean mixedUpMode = false;    
+
     public GeneratorManager(BentoGens plugin) {
         this.plugin = plugin;
         this.generators = new ConcurrentHashMap<>();
@@ -335,6 +346,23 @@ public class GeneratorManager {
         
         location.getBlock().setType(Material.AIR);
         
+        // FIXED: Give generator item to player (skip in creative)! ✅
+        if (player != null && player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            ItemStack generatorItem = getGeneratorItem(gen.getType());
+            
+            // Try to add to inventory
+            java.util.HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(generatorItem);
+            
+            // If inventory full, drop item
+            if (!leftover.isEmpty()) {
+                for (ItemStack item : leftover.values()) {
+                    player.getWorld().dropItemNaturally(location, item);
+                }
+                String msg = plugin.getConfigManager().colorize("&e&l⚠ &fInventory full! Generator dropped.");
+                player.sendMessage(msg);
+            }
+        }
+        
         if (player != null && plugin.getConfig().getBoolean("sounds.generator-break.enabled", true)) {
             String soundName = plugin.getConfig().getString("sounds.generator-break.sound", "ENTITY_ITEM_PICKUP");
             float volume = (float) plugin.getConfig().getDouble("sounds.generator-break.volume", 1.0);
@@ -392,7 +420,7 @@ public class GeneratorManager {
     }
     
     /**
-     * Drop items from generator
+     * Drop items from generator - STATIC SPAWN (no random velocity)
      */
     private void dropItems(Generator gen) {
         ConfigurationSection drops = plugin.getConfigManager()
@@ -401,6 +429,7 @@ public class GeneratorManager {
         
         if (drops == null) return;
         
+        // Get random drop based on chance
         int totalChance = 0;
         Map<String, Integer> chances = new HashMap<>();
         
@@ -428,6 +457,7 @@ public class GeneratorManager {
         
         if (selectedDrop == null) return;
         
+        // Create item
         ConfigurationSection dropConfig = drops.getConfigurationSection(selectedDrop + ".item");
         if (dropConfig == null) return;
         
@@ -439,6 +469,7 @@ public class GeneratorManager {
         int amount = dropConfig.getInt("amount", 1);
         ItemStack item = new ItemStack(material, amount);
         
+        // Set display name and lore
         if (dropConfig.contains("display-name") || dropConfig.contains("lore")) {
             ItemMeta meta = item.getItemMeta();
             
@@ -459,13 +490,18 @@ public class GeneratorManager {
             item.setItemMeta(meta);
         }
         
+        // SPAWN ITEM STATIC - Center, 1 block above generator
         Location spawnLocation = gen.getLocation().clone().add(0.5, 1.0, 0.5);
         World world = gen.getLocation().getWorld();
         
         if (world != null) {
-            Item droppedItem = world.dropItemNaturally(spawnLocation, item);
-            droppedItem.setVelocity(new Vector(0, 0.2, 0));
+            // Drop item with NO velocity (static spawn)
+            Item droppedItem = world.dropItem(spawnLocation, item);
             
+            // Set velocity to ZERO for static spawn
+            droppedItem.setVelocity(new Vector(0, 0, 0));
+            
+            // Play sound (optional)
             if (plugin.getConfig().getBoolean("sounds.generator-drop.enabled", false)) {
                 String soundName = plugin.getConfig().getString("sounds.generator-drop.sound", "ENTITY_EXPERIENCE_ORB_PICKUP");
                 float volume = (float) plugin.getConfig().getDouble("sounds.generator-drop.volume", 0.5);
@@ -579,4 +615,15 @@ public class GeneratorManager {
         plugin.getLogger().info("Saved " + saved + " generators" + 
             (failed > 0 ? " (" + failed + " failed)" : ""));
     }
+
+    public void setDropMultiplier(int multiplier) { this.dropMultiplier = multiplier; }
+    public void resetDropMultiplier() { this.dropMultiplier = 1; }
+
+    public void setSpeedMultiplier(double multiplier) { this.speedMultiplier = multiplier; }
+    public void resetSpeedMultiplier() { this.speedMultiplier = 1.0; }
+
+    public void setTierBoost(int boost) { this.tierBoost = boost; }
+    public void resetTierBoost() { this.tierBoost = 0; }
+
+    public void setMixedUpMode(boolean active) { this.mixedUpMode = active; }
 }

@@ -73,7 +73,7 @@ public class GeneratorListener implements Listener {
     /**
      * Handle generator break
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onGeneratorBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBlock();
@@ -85,10 +85,12 @@ public class GeneratorListener implements Listener {
             return;
         }
         
+        // INSTANT BREAK - Cancel the event! ✅
+        event.setCancelled(true);
+        
         // Check ownership or admin permission
         if (!gen.getOwner().equals(player.getUniqueId()) 
                 && !player.hasPermission("bentogens.admin")) {
-            event.setCancelled(true);
             String msg = plugin.getConfigManager().getMessage("not-owner");
             if (msg != null) {
                 player.sendMessage(msg);
@@ -96,24 +98,8 @@ public class GeneratorListener implements Listener {
             return;
         }
         
-        // Remove generator
+        // Remove generator (will give item to player automatically)
         plugin.getGeneratorManager().removeGenerator(location, player);
-        
-        // Drop generator item (not the block)
-        event.setDropItems(false);
-        
-        // Give generator item back to player (only if not in creative)
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            ItemStack generatorItem = plugin.getGeneratorManager().getGeneratorItem(gen.getType());
-            
-            // Try to add to inventory
-            if (player.getInventory().firstEmpty() != -1) {
-                player.getInventory().addItem(generatorItem);
-            } else {
-                // Drop if inventory full
-                player.getWorld().dropItemNaturally(player.getLocation(), generatorItem);
-            }
-        }
     }
     
     /**

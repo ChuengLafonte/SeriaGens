@@ -1,64 +1,99 @@
 name: BentoGens
 version: 1.0.0
 main: com.yourserver.bentogens.BentoGens
-api-version: '1.21'
-author: YourServer
-description: Advanced Generator Plugin with Corruption System & GUI
+api-version: 1.21
+author: YourName
+description: Generator plugin for BentoBox with sell system
 
-# Dependencies
-softdepend:
+# CRITICAL: Load AFTER BentoBox!
+depend:
   - BentoBox
   - Vault
 
-# Commands
+softdepend:
+  - Essentials
+  - PlaceholderAPI
+  - ShopGUIPlus
+
 commands:
   bentogens:
     description: Main BentoGens command
-    usage: /bentogens [help|info|reload|give|restore]
-    aliases: [bgens, bg, gens]
+    usage: /<command> [args]
+    aliases: [bgens, gen]
   
   genshop:
     description: Open generator shop
-    usage: /genshop
-    aliases: [bgshop, generatorshop]
-    permission: bentogens.shop
+    usage: /<command>
+    aliases: [gshop, generatorshop]
   
   genset:
     description: Manage your generators
-    usage: /genset
-    aliases: [gensettings, generatormanage, genmanage]
-    permission: bentogens.genset
+    usage: /<command>
+    aliases: [generators, mygens]
+  
+  gensell:
+    description: Sell generator items from inventory
+    usage: /<command>
+    aliases: [gsell]
+  
+  event:
+    description: Manage generator events
+    usage: /<command> <start|stop|list|info> [eventid]
+    aliases: [events, genevent]
 
-# Permissions
+# NO /sell COMMAND - Avoid conflict with ShopGUIPlus!
+
 permissions:
   bentogens.admin:
-    description: Admin permission for all commands
+    description: Admin access to all features
     default: op
     children:
-      bentogens.use: true
-      bentogens.shop: true
-      bentogens.genset: true
-      bentogens.max.unlimited: true
+      bentogens.reload: true
+      bentogens.give: true
+      bentogens.restore: true
   
-  bentogens.use:
-    description: Use generators
-    default: true
+  bentogens.reload:
+    description: Reload plugin
+    default: op
+  
+  bentogens.give:
+    description: Give generators and items
+    default: op
+  
+  bentogens.restore:
+    description: Restore generator blocks
+    default: op
   
   bentogens.shop:
     description: Access generator shop
     default: true
   
-  bentogens.genset:
-    description: Access generator management GUI
+  bentogens.place:
+    description: Place generators
     default: true
   
-  # Max generator permissions
+  bentogens.break:
+    description: Break generators
+    default: true
+  
+  bentogens.genset:
+    description: Use /genset command
+    default: true
+  
+  bentogens.wand:
+    description: Use sell wand
+    default: true
+  
+  bentogens.sell:
+    description: Use /gensell command
+    default: true
+  
   bentogens.max.10:
     description: Max 10 generators
     default: true
   
-  bentogens.max.25:
-    description: Max 25 generators
+  bentogens.max.20:
+    description: Max 20 generators
     default: false
   
   bentogens.max.50:
