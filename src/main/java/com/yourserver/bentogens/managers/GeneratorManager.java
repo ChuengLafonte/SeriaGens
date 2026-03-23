@@ -344,6 +344,9 @@ public class GeneratorManager {
         
         plugin.getDatabaseManager().deleteGenerator(gen.getId());
         
+        // Remove hologram if exists ✅
+        plugin.getHologramIntegration().removeCorruptionHologram(gen);
+        
         location.getBlock().setType(Material.AIR);
         
         // FIXED: Give generator item to player (skip in creative)! ✅

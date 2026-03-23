@@ -1,7 +1,9 @@
 package com.yourserver.bentogens.gui;
 
-import com.yourserver.bentogens.BentoGens;
-import com.yourserver.bentogens.models.Generator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -9,9 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.yourserver.bentogens.BentoGens;
+import com.yourserver.bentogens.models.Generator;
 
 /**
  * Main generator management GUI

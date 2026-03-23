@@ -6,13 +6,13 @@ coal_gens:
     cost: 50
     chance: 5.0
   upgrade:
-    next-generator: iron_gens
-    upgrade-cost: 1500
+    next-tier: iron_gens
+    cost: 1500
   upgrade-requirements: 
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 5 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
+      placeholder: "%auraskills_power%"
       value: "5"
   item:
     material: coal_ore
@@ -50,13 +50,13 @@ iron_gens:
     cost: 100
     chance: 5.0
   upgrade:
-    next-generator: copper_gens
-    upgrade-cost: 5000
+    next-tier: copper_gens
+    cost: 5000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 10 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
+      placeholder: "%auraskills_power%"
       value: "10"
   item:
     material: iron_ore
@@ -94,14 +94,14 @@ copper_gens:
     cost: 200
     chance: 6.0
   upgrade:
-    next-generator: gold_gens
-    upgrade-cost: 15000
+    next-tier: gold_gens
+    cost: 15000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 15 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
-      value: "15"
+      placeholder: "%auraskills_power%"
+      value: "20"
   item:
     material: copper_ore
     display-name: "&#ff7f17&l⛏ COPPER GENERATOR"
@@ -138,14 +138,14 @@ gold_gens:
     cost: 500
     chance: 6.0
   upgrade:
-    next-generator: redstone_gens
-    upgrade-cost: 50000
+    next-tier: redstone_gens
+    cost: 50000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 20 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
-      value: "20"
+      placeholder: "%auraskills_power%"
+      value: "30"
   item:
     material: gold_ore
     display-name: "&#f1c40f&l⛏ GOLD GENERATOR"
@@ -182,14 +182,14 @@ redstone_gens:
     cost: 1000
     chance: 7.0
   upgrade:
-    next-generator: emerald_gens
-    upgrade-cost: 150000
+    next-tier: emerald_gens
+    cost: 150000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 25 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
-      value: "25"
+      placeholder: "%auraskills_power%"
+      value: "40"
   item:
     material: redstone_ore
     display-name: "&#e74c3c&l⛏ REDSTONE GENERATOR"
@@ -226,14 +226,14 @@ emerald_gens:
     cost: 2500
     chance: 7.0
   upgrade:
-    next-generator: lapis_gens
-    upgrade-cost: 500000
+    next-tier: lapis_gens
+    cost: 500000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 30 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
-      value: "30"
+      placeholder: "%auraskills_power%"
+      value: "50"
   item:
     material: emerald_ore
     display-name: "&#2ecc71&l⛏ EMERALD GENERATOR"
@@ -270,14 +270,14 @@ lapis_gens:
     cost: 5000
     chance: 8.0
   upgrade:
-    next-generator: diamond_gens
-    upgrade-cost: 1500000
+    next-tier: diamond_gens
+    cost: 1500000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 35 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
-      value: "35"
+      placeholder: "%auraskills_power%"
+      value: "50"
   item:
     material: lapis_ore
     display-name: "&#3498db&l⛏ LAPIS GENERATOR"
@@ -314,14 +314,14 @@ diamond_gens:
     cost: 10000
     chance: 8.0
   upgrade:
-    next-generator: debris_gens
-    upgrade-cost: 5000000
+    next-tier: debris_gens
+    cost: 5000000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 40 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
-      value: "40"
+      placeholder: "%auraskills_power%"
+      value: "60"
   item:
     material: diamond_ore
     display-name: "&#00d9ff&l⛏ DIAMOND GENERATOR"
@@ -358,14 +358,14 @@ debris_gens:
     cost: 25000
     chance: 9.0
   upgrade:
-    next-generator: netherite_gens
-    upgrade-cost: 10000000
+    next-tier: []
+    cost: 10000000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 45 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
-      value: "45"
+      placeholder: "%auraskills_power%"
+      value: "70"
   item:
     material: ancient_debris
     display-name: "&#8B4513&l⛏ ANCIENT DEBRIS GENERATOR"
@@ -402,13 +402,13 @@ netherite_gens:
     cost: 50000
     chance: 10.0
   upgrade:
-    next-generator: deepslate_iron_gens
-    upgrade-cost: 20000000
+    next-tier: deepslate_iron_gens
+    cost: 20000000
   upgrade-requirements:
     '0':
       type: PLACEHOLDER
       message: "&c&l⚠ ERROR: &fButuh &cMining Level 50 &funtuk upgrade!"
-      placeholder: "%auraskills_mining%"
+      placeholder: "%auraskills_power%"
       value: "50"
   item:
     material: netherite_block

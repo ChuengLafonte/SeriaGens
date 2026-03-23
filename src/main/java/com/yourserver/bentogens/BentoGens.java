@@ -11,6 +11,7 @@ import com.yourserver.bentogens.commands.MainCommand;
 import com.yourserver.bentogens.commands.SellCommand;
 import com.yourserver.bentogens.commands.ShopCommand;
 import com.yourserver.bentogens.integration.BentoBoxIntegration;
+import com.yourserver.bentogens.integration.FancyHologramsIntegration;
 import com.yourserver.bentogens.listeners.ChunkListener;
 import com.yourserver.bentogens.listeners.GUIListener;
 import com.yourserver.bentogens.listeners.GeneratorListener;
@@ -41,6 +42,7 @@ public final class BentoGens extends JavaPlugin {
     private SellManager sellManager;
     private RequirementsChecker requirementsChecker;
     private EventManager eventManager;
+    private FancyHologramsIntegration hologramIntegration;  // ← NEW!
 
     @Override
     public void onEnable() {
@@ -137,6 +139,9 @@ public final class BentoGens extends JavaPlugin {
         
         // Initialize event system - NEW! ✅
         eventManager = new EventManager(this);
+        
+        // Initialize hologram integration - NEW! ✅
+        hologramIntegration = new FancyHologramsIntegration(this);
     }
     
     /**
@@ -163,6 +168,12 @@ public final class BentoGens extends JavaPlugin {
     
     @Override
     public void onDisable() {
+        // Remove all holograms
+        if (hologramIntegration != null) {
+            getLogger().info("Removing holograms...");
+            hologramIntegration.removeAllHolograms();
+        }
+        
         // CRITICAL: Save SYNCHRONOUSLY before closing database!
         if (generatorManager != null) {
             getLogger().info("Saving all generators...");
@@ -336,5 +347,9 @@ public final class BentoGens extends JavaPlugin {
 
     public EventManager getEventManager() {
         return this.eventManager;
+    }
+    
+    public FancyHologramsIntegration getHologramIntegration() {
+        return hologramIntegration;
     }
 }

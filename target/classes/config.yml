@@ -171,3 +171,21 @@ messages:
 # ✅ BentoBox island integration
 # ✅ Database corruption prevention
 # ==========================================
+# ==========================================
+#     HOLOGRAM CONFIGURATION
+# ==========================================
+# FancyHolograms integration for corruption notifications
+
+hologram:
+  corruption:
+    # Enable hologram notifications
+    enabled: true
+    
+    # Hologram lines (shown above corrupted generators)
+    lines:
+      - "&c&l⚠ GENERATOR RUSAK!"
+      - "&7Repair dengan &e/genset"
+      - "&7Cost: &c●{cost}"
+    
+    # Hologram height (blocks above generator)
+    height: 2.0

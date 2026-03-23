@@ -111,6 +111,9 @@ public class CorruptionManager {
                 plugin.getDatabaseManager().saveGenerator(gen);
                 corruptedCount++;
                 
+                // Show hologram ✅
+                plugin.getHologramIntegration().showCorruptionHologram(gen);
+                
                 // Notify owner
                 Player owner = Bukkit.getPlayer(gen.getOwner());
                 if (owner != null && owner.isOnline()) {
@@ -218,6 +221,9 @@ public class CorruptionManager {
         // Repair
         gen.setCorrupted(false);
         plugin.getDatabaseManager().saveGenerator(gen);
+        
+        // Remove hologram ✅
+        plugin.getHologramIntegration().removeCorruptionHologram(gen);
         
         // Success message
         String msg = plugin.getConfigManager().getMessage("generator-repaired")
