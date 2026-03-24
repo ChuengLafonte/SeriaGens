@@ -1,0 +1,44 @@
+management:
+  title: '&6&lManajemen Aset (Generators)'
+  generator-lore-normal:
+    - '&8&m━━━━━━━━━━━━━━━━━━━━'
+    - '&7Lokasi: &e{x}, {y}, {z}'
+    - '&a&l✔ STATUS: OPERASIONAL'
+    - '&eKlik untuk mengelola aset ini.'
+  generator-lore-corrupted:
+    - '&8&m━━━━━━━━━━━━━━━━━━━━'
+    - '&7Lokasi: &e{x}, {y}, {z}'
+    - '&c&l⚠ STATUS: RUSAK (CORRUPTED)'
+    - '&eKlik untuk membuka menu perbaikan!'
+  summary-title: '&b&lStatistik Aset'
+  summary-lore:
+    - '&7Total Generator: &e{count}'
+    - '&7Estimasi Biaya Perbaikan: &c●{repair_cost}'
+  prev-page: '&e⬅ Halaman Sebelumnya'
+  next-page: '&eHalaman Selanjutnya ➡'
+
+upgrade:
+  title: '&6Pengaturan Generator'
+  max-tier-title: '&c&lMAX TIER'
+  max-tier-lore:
+    - '&7Generator ini sudah mencapai'
+    - '&7level maksimal.'
+  upgrade-btn-title: '&a&lUPGRADE GENERATOR'
+  upgrade-btn-lore:
+    - '&7Biaya: &a●{cost}'
+    - ''
+    - '&eKlik untuk menaikkan tier!'
+  repair-btn-title: '&c&lGENERATOR RUSAK!'
+  repair-btn-lore:
+    - '&7Mesin ini mengalami kerusakan teknis'
+    - '&7dan berhenti memproduksi sumber daya.'
+    - ''
+    - '&7Biaya Perbaikan: &c●{cost}'
+    - ''
+    - '&eKlik untuk memperbaiki mesin!'
+  back-btn: '&cKembali ke Manajemen Utama'
+  display-current: '&e&lCURRENT: {name}'
+  display-next: '&a&lNEXT: {name}'
+  display-lore:
+    - '&7Type: &f{type}'
+    - '&7Interval: &f{interval}s'

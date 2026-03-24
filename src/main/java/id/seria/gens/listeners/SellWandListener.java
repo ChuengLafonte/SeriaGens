@@ -1,0 +1,129 @@
+package id.seria.gens.listeners;
+
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.Container;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+
+import id.seria.gens.SeriaGens;
+import id.seria.gens.managers.SellManager;
+import id.seria.gens.models.SellwandData;
+
+public class SellWandListener implements Listener {
+    
+    private final SeriaGens plugin;
+    private final DecimalFormat formatter = new DecimalFormat("#,###.##");
+    
+    public SellWandListener(SeriaGens plugin) {
+        this.plugin = plugin;
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onWandUse(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+        Block block = event.getClickedBlock();
+        
+        if (item == null || block == null) return;
+        if (!SellwandData.isSellwand(plugin, item)) return;
+        
+        event.setCancelled(true);
+        
+        if (!player.hasPermission("seriagens.wand")) {
+            player.sendMessage(plugin.getConfigManager().colorize("&cNo permission to use sell wands!"));
+            return;
+        }
+        
+        if (!(block.getState() instanceof Container)) {
+            player.sendMessage(plugin.getConfigManager().colorize("&cYou can only use this on containers (Chests, Barrels, etc)!"));
+            return;
+        }
+        
+        SellwandData wandData = SellwandData.fromItem(plugin, item);
+        if (wandData == null || wandData.hasBroken()) {
+            player.sendMessage(plugin.getConfigManager().colorize("&cThis sellwand is broken!"));
+            return;
+        }
+        
+        Container container = (Container) block.getState();
+        Inventory inventory = container.getInventory();
+        SellResult result = processSell(player, inventory, wandData.getMultiplier());
+        
+        if (!result.isSuccess()) {
+            player.sendMessage(plugin.getConfigManager().colorize("&cNo sellable generator items found in this container."));
+            return;
+        }
+        
+        wandData.decreaseUses();
+        wandData.updateItem(plugin);
+        
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
+        
+        player.sendMessage(plugin.getConfigManager().colorize(
+            "&#84fab0&l✦ &fSold &e" + result.itemsSold + " &fitems for &a●" + formatter.format(result.totalValue) + 
+            " &7(" + wandData.getMultiplier() + "x Multiplier)"
+        ));
+        
+        if (wandData.hasBroken()) {
+            player.getInventory().setItemInMainHand(null);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+            player.sendMessage(plugin.getConfigManager().colorize("&c&l⚠ &fYour sellwand has broken!"));
+        }
+    }
+    
+    private SellResult processSell(Player player, Inventory inventory, double multiplier) {
+        int totalItems = 0;
+        double totalValue = 0.0;
+        Map<String, Integer> itemCounts = new HashMap<>();
+        SellManager sellManager = plugin.getSellManager();
+        
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack content = inventory.getItem(i);
+            if (content == null || content.getType() == Material.AIR) continue;
+            
+            // Menyertakan player untuk ShopGUI+ check
+            if (sellManager.isSellable(player, content)) {
+                int amount = content.getAmount();
+                double value = (sellManager.getSellValue(player, content) * amount) * multiplier;
+                
+                totalItems += amount;
+                totalValue += value;
+                inventory.setItem(i, null);
+            }
+        }
+        
+        if (totalValue > 0 && plugin.getEconomy() != null) {
+            plugin.getEconomy().depositPlayer(player, totalValue);
+        }
+        
+        return new SellResult(totalItems, totalValue, itemCounts);
+    }
+    
+    private static class SellResult {
+        final int itemsSold;
+        final double totalValue;
+        
+        SellResult(int itemsSold, double totalValue, Map<String, Integer> itemCounts) {
+            this.itemsSold = itemsSold;
+            this.totalValue = totalValue;
+        }
+        
+        boolean isSuccess() {
+            return totalValue > 0;
+        }
+    }
+}

@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.yourserver</groupId>
-    <artifactId>BentoGens</artifactId>
+    <groupId>id.seria</groupId>
+    <artifactId>SeriaGens</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
@@ -31,10 +31,21 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <repository>
+            <id>fancyplugins-releases</id>
+            <url>https://repo.fancyplugins.de/releases</url>
+        </repository>
+        <repository>
+            <id>codemc-public</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>codemc-snapshots</id>
+            <url>https://repo.codemc.io/repository/maven-snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
-        <!-- Paper API -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
@@ -42,7 +53,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Vault API -->
         <dependency>
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
@@ -50,19 +60,29 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- PlaceholderAPI -->
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
             <version>2.11.5</version>
             <scope>provided</scope>
         </dependency>
-
-        <!-- NO FancyHolograms dependency! We use reflection like BentoBox -->
+        <dependency>
+            <groupId>de.oliver</groupId>
+            <artifactId>FancyHolograms</artifactId>
+            <version>2.9.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>world.bentobox</groupId>
+            <artifactId>bentobox</artifactId>
+            <version>3.11.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/bentobox.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <build>
-        <finalName>BentoGens-${project.version}</finalName>
+        <finalName>SeriaGens-${project.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

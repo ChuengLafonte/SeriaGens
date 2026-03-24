@@ -1,0 +1,32 @@
+messages:
+  prefix: '&6[SeriaGens]'
+  no-permission: '{prefix} &cMaaf, kamu tidak memiliki izin untuk melakukan ini!'
+  plugin-reloaded: '{prefix} &aKonfigurasi dan data plugin berhasil dimuat ulang!'
+  player-not-found: '{prefix} &cPemain tersebut tidak ditemukan atau sedang offline!'
+  invalid-generator: '{prefix} &cTipe generator tidak valid! Cek generators.yml.'
+  generator-given: '{prefix} &aBerhasil memberikan &e{amount} &agenerator kepada &e{player}!'
+  max-generators: '{prefix} &cKamu telah mencapai batas maksimal &e{max} &cgenerator!'
+  generator-placed: '{prefix} &aGenerator berhasil diletakkan! &7({current}/{max})'
+  generator-removed: '{prefix} &cGenerator berhasil dibongkar!'
+  economy-disabled: '{prefix} &cSistem ekonomi (Vault) sedang tidak aktif di server!'
+  generator-repaired: '{prefix} &aGenerator berhasil diperbaiki dengan biaya &a●{cost}!'
+  generators-returned: '{prefix} &aSebanyak &e{amount} &agenerator telah dikembalikan ke inventory-mu!'
+  
+  help-normal:
+  - '&6&lSeriaGens &7- Sistem Aset'
+  - '&6/sgens help &7- Menampilkan bantuan ini'
+  - '&6/genset &7- Buka Panel Manajemen Aset'
+  - '&6/gensell &7- Jual semua hasil produksi'
+  - '&7'
+  - '&e&lTip: &7Klik Kiri untuk pickup cepat, Klik Kanan untuk Upgrade/Repair!'
+  
+  help-admin:
+  - '&6&lSeriaGens Admin Commands'
+  - '&6/sgens reload &7- Memuat ulang konfigurasi'
+  - '&6/sgens give <pemain> <tipe> [jumlah] &7- Berikan generator'
+  - '&6/sgens sellwand <pemain> [multiplier] [uses] &7- Berikan Sell Wand'
+  - '&6/sgens view <pemain> &7- Buka CCTV Panel Aset Pemain'
+  - '&6/sgens addslot <pemain> <jumlah> &7- Tambah limit slot pemain'
+  - '&6/sgens pickup <pemain> &7- Ambil semua gen pemain secara paksa'
+  - '&6/sgens restore &7- Pulihkan blok generator yang hilang'
+  - '&6/event start <id> &7- Memulai event global'

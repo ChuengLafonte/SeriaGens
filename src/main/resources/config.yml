@@ -37,6 +37,14 @@ generators:
   # Should we drop generator item on break?
   drop-on-break: false
 
+  # Pengaturan Limit Dinamis (Tambahkan permission: seriagens.max.<nama_grup>)
+  limits:
+    vip: 15
+    premium: 20
+    mvp: 30
+    legend: 50
+    titan: 100
+
 # Corruption System
 # Generators can break and need repair
 # ONLY affects generators when owner is ONLINE
@@ -113,53 +121,6 @@ particles:
   generator-place: true
   generator-break: true
   generator-working: false
-
-# Messages
-messages:
-  prefix: '&6[BentoGens]'
-  
-  # General
-  no-permission: '{prefix} &cNo permission!'
-  not-owner: '{prefix} &cYou don''t own this generator!'
-  reload-success: '{prefix} &aConfiguration reloaded!'
-  economy-disabled: '{prefix} &cEconomy is disabled! Install Vault + economy plugin.'
-  
-  # Generator Actions
-  generator-placed: '{prefix} &aGenerator placed! &7({current}/{max})'
-  generator-removed: '{prefix} &cGenerator removed!'
-  max-generators: '{prefix} &cMax generators reached! &7({max})'
-  generator-upgraded: '{prefix} &aUpgraded to &e{type} &afor &e${cost}'
-  generator-repaired: '{prefix} &aGenerator repaired for &e${cost}'
-  
-  # Island Checks
-  not-on-island: '{prefix} &cYou must be on your island!'
-  not-your-island: '{prefix} &cThis is not your island!'
-  
-  # Economy
-  insufficient-funds: '{prefix} &cInsufficient funds!'
-  transaction-failed: '{prefix} &cTransaction failed!'
-  
-  # Admin
-  give-gen: '{prefix} &aYou gave &e{amount}x {type} &ato &e{player}'
-  receive-gen: '{prefix} &aYou received &e{amount}x {type}&a!'
-  
-  # Events
-  generators-returned: '{prefix} &aYour &e{amount} &agenerators have been returned!'
-  
-  # Help
-  help-normal:
-  - '&6&lBentoGens &7- Generator Plugin'
-  - '&6/bentogens help &7- Show this help'
-  - '&6/bentogens info &7- Show plugin info'
-  - '&6/genset &7- Manage your generators'
-  - '&7'
-  - '&e&lTip: &7Right-click generators to upgrade/repair!'
-  
-  help-admin:
-  - '&6&lBentoGens Admin Commands'
-  - '&6/bentogens reload &7- Reload configuration'
-  - '&6/bentogens give <player> <type> [amount] &7- Give generator'
-  - '&6/bentogens restore &7- Restore all generator blocks'
 
 # ==========================================
 # FEATURES:
