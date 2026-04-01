@@ -1,7 +1,7 @@
 package id.seria.gens.managers;
 
 import id.seria.gens.SeriaGens;
-import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -44,12 +44,18 @@ public class RequirementsChecker {
                     break;
                     
                 case "PLACEHOLDER":
+                    // Pengecekan Aman: Pastikan PAPI benar-benar aktif
+                    if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
+                        plugin.getLogger().warning("Melewati pengecekan Placeholder karena PlaceholderAPI tidak ditemukan!");
+                        break; 
+                    }
+                    
                     String placeholder = req.getString("placeholder");
                     String expectedValueStr = req.getString("value");
                     String operator = req.getString("operator", ">=");
                     
                     if (placeholder != null && expectedValueStr != null) {
-                        String actualValueStr = PlaceholderAPI.setPlaceholders(player, placeholder);
+                        String actualValueStr = parsePlaceholder(player, placeholder);
                         try {
                             double actual = Double.parseDouble(actualValueStr);
                             double expected = Double.parseDouble(expectedValueStr);
@@ -80,6 +86,11 @@ public class RequirementsChecker {
         return new RequirementResult(true, null);
     }
     
+    // Method terpisah untuk menghindari Eager Class Loading oleh JVM
+    private String parsePlaceholder(Player player, String placeholder) {
+        return me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, placeholder);
+    }
+    
     private boolean checkOperator(double actual, double required, String operator) {
         switch (operator) {
             case ">=": return actual >= required;
@@ -96,7 +107,8 @@ public class RequirementsChecker {
     
     public enum RequirementType {
         PLACE,
-        UPGRADE
+        UPGRADE,
+        FUEL_UNLOCK // Menambahkan tipe baru untuk fitur Fuel nantinya
     }
     
     public static class RequirementResult {

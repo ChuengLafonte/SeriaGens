@@ -25,6 +25,7 @@ import org.bukkit.util.Vector;
 
 import id.seria.gens.SeriaGens;
 import id.seria.gens.models.Generator;
+import id.seria.gens.models.PlayerGlobalGrid;
 
 public class GeneratorManager {
     
@@ -44,6 +45,14 @@ public class GeneratorManager {
         this.generators = new ConcurrentHashMap<>();
         this.playerGenerators = new ConcurrentHashMap<>();
         this.pendingRestorations = new ConcurrentHashMap<>();
+    }
+
+    public Object getJoules(UUID uniqueId, String genType) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public double getSpeedMultiplier() {
+        return plugin.getConfig().getDouble("events.speed-multiplier", 1.0);
     }
     
     /**
@@ -301,34 +310,56 @@ public class GeneratorManager {
     }
     
     public void tickGenerators() {
-        for (Generator gen : new ArrayList<>(generators.values())) {
-            World world = gen.getLocation().getWorld();
-            if (world == null) continue;
+    for (Generator gen : new ArrayList<>(generators.values())) {
+        org.bukkit.World world = gen.getLocation().getWorld();
+        if (world == null) continue;
+        
+        if (!world.isChunkLoaded(gen.getLocation().getBlockX() >> 4, gen.getLocation().getBlockZ() >> 4)) continue;
+        
+        // 1. SKIP JIKA RUSAK
+        if (gen.isCorrupted()) continue; 
+
+        UUID ownerUUID = gen.getOwner();
+        
+        // 2. CEK GARDU INDUK GLOBAL OWNER
+        PlayerGlobalGrid grid = plugin.getFuelManager().getGlobalGrid(ownerUUID);
+        if (grid == null) continue; // Owner belum login/load (tergantung logika caching)
+
+        // JIKA GARDU OVER CAPACITY: Mesin mati
+        if (grid.isOverCapacity()) continue;
+
+        String type = gen.getType();
+        int interval = plugin.getConfigManager().getGeneratorInterval(type);
+        int jouleCost = plugin.getConfigManager().getGeneratorsConfig().getInt(type + ".joule-cost-per-drop", 1);
+
+        // 3. CEK DAYA GARDU: Jika GARDU habis daya, mesin mati
+        if (grid.getCurrentJoules() < jouleCost) continue;
+
+        boolean onlineOnly = plugin.getConfig().getBoolean("generators.online-only", true);
+        if (onlineOnly) {
+            org.bukkit.entity.Player owner = org.bukkit.Bukkit.getPlayer(ownerUUID);
+            if (owner == null || !owner.isOnline()) continue;
+        }
+        
+        // Apply speed multiplier from events
+        int adjustedInterval = (int) (interval * (1.0 - (1.0 - speedMultiplier)));
+        if (adjustedInterval < 1) adjustedInterval = 1;
+        
+        if (gen.canDrop(adjustedInterval)) {
+            dropItems(gen);
             
-            if (!world.isChunkLoaded(gen.getLocation().getBlockX() >> 4, gen.getLocation().getBlockZ() >> 4)) {
-                continue;
-            }
+            // KONSUMSI DAYA DARI GARDU INDUK GLOBAL
+            grid.consumeGlobally(plugin, jouleCost); 
             
-            boolean onlineOnly = plugin.getConfig().getBoolean("generators.online-only", true);
-            if (onlineOnly) {
-                Player owner = Bukkit.getPlayer(gen.getOwner());
-                if (owner == null || !owner.isOnline()) continue;
-            }
+            gen.markDropped();
             
-            String type = gen.getType();
-            int interval = plugin.getConfigManager().getGeneratorInterval(type);
-            
-            // Apply speed multiplier from events
-            int adjustedInterval = (int) (interval * (1.0 - (1.0 - speedMultiplier)));
-            if (adjustedInterval < 1) adjustedInterval = 1;
-            
-            if (gen.canDrop(adjustedInterval)) {
-                dropItems(gen);
-                gen.markDropped();
+            // Simpan Generator (Wajib untuk update last_drop), 
+            // Save Grid akan dilakukan secara Asynchronous/ketika GUI tutup.
+            plugin.getDatabaseManager().saveGenerator(gen);
             }
         }
     }
-    
+ 
     private void dropItems(Generator gen) {
         String effectiveType = gen.getType();
         if (tierBoost > 0) {

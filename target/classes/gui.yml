@@ -1,21 +1,82 @@
+# ==========================================
+#         SERIAGENS GUI CONFIGURATION
+# ==========================================
+
 management:
   title: '&6&lManajemen Aset (Generators)'
-  generator-lore-normal:
+  size: 54
+  
+  # Pengaturan Slot Generator (Maksimal 14 slot per halaman)
+  generator-slots: [10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25]
+  
+  # Pengaturan Slot Gardu Induk Global (Harus 5 slot)
+  fuel-slots: [38, 39, 40, 41, 42]
+  
+  # Lore utama untuk display generator di menu
+  generator-display-lore:
     - '&8&m━━━━━━━━━━━━━━━━━━━━'
+    - '&7Owner: &e{owner}'
     - '&7Lokasi: &e{x}, {y}, {z}'
-    - '&a&l✔ STATUS: OPERASIONAL'
-    - '&eKlik untuk mengelola aset ini.'
-  generator-lore-corrupted:
+    - '{status}' # <-- Ini akan otomatis terganti oleh status di bawah
     - '&8&m━━━━━━━━━━━━━━━━━━━━'
-    - '&7Lokasi: &e{x}, {y}, {z}'
-    - '&c&l⚠ STATUS: RUSAK (CORRUPTED)'
-    - '&eKlik untuk membuka menu perbaikan!'
-  summary-title: '&b&lStatistik Aset'
-  summary-lore:
-    - '&7Total Generator: &e{count}'
-    - '&7Estimasi Biaya Perbaikan: &c●{repair_cost}'
-  prev-page: '&e⬅ Halaman Sebelumnya'
-  next-page: '&eHalaman Selanjutnya ➡'
+    - '&eKlik Kanan &7untuk pengaturan/upgrade.'
+    - '&eKlik Kiri &7untuk mengambil (pickup).'
+  
+  # Format teks untuk placeholder {status}
+  status-normal: '&a&l✔ STATUS: OPERASIONAL'
+  status-corrupted: '&c&l⚠ STATUS: RUSAK (CORRUPTED)'
+  
+  # Item Spesial, Tombol Navigasi & Dekorasi Menu
+  items:
+    filler:
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+      slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 28, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 43, 44, 45, 46, 52]
+      priority: 0
+    
+    close-btn:
+      material: BARRIER
+      name: '&cTutup Menu'
+      slot: 53
+      
+    next-btn:
+      material: ARROW
+      name: '&eHalaman Selanjutnya ➡ &7({page})'
+      slot: 35
+      priority: 2
+      
+    back-btn:
+      material: ARROW
+      name: '&e⬅ Halaman Sebelumnya &7({page})'
+      slot: 27
+      priority: 2
+      
+    # Slot untuk panel Statistik Aset di bagian bawah
+    stat-status:
+      slot: 47
+      name: '&6STATUS GARDU INDUK'
+      lore:
+        - '&7Status: {grid_status}'
+        - '&7Tenaga: &e{current} &7/ &e{max} J'
+        - '&7Total Dibutuhkan: &e{required} J/Drop'
+        
+    stat-asset:
+      slot: 48
+      name: '&6TOTAL ASSET MESIN'
+      lore:
+        - '&7Konfirmasi: &e{count} &7Mesin terpasang.'
+        
+    stat-event:
+      slot: 50
+      name: '&6EVENT MULTIPLIER'
+      lore:
+        - '&7Kecepatan: &ex{multiplier} &7Drop'
+        
+    stat-limit:
+      slot: 51
+      name: '&6LIMIT KAPASITAS GARDU'
+      lore:
+        - '&7Limit Rank: &e{max} J'
 
 upgrade:
   title: '&6Pengaturan Generator'

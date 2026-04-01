@@ -1,9 +1,8 @@
 package id.seria.gens.models;
 
-import org.bukkit.Location;
-import org.bukkit.World;
-
 import java.util.UUID;
+
+import org.bukkit.Location;
 
 public class Generator {
     
@@ -16,6 +15,7 @@ public class Generator {
     private boolean corrupted;
     private long lastCorruptionCheck;
     
+    // Constructor saat pertama dipasang
     public Generator(String id, UUID owner, Location location, String type) {
         this.id = id;
         this.owner = owner;
@@ -27,6 +27,7 @@ public class Generator {
         this.lastCorruptionCheck = System.currentTimeMillis();
     }
     
+    // Constructor saat load dari DB (Tanpa Kolom Fuel)
     public Generator(String id, UUID owner, Location location, String type, 
                     long lastDrop, long placedAt, boolean corrupted, long lastCorruptionCheck) {
         this.id = id;
@@ -39,6 +40,7 @@ public class Generator {
         this.lastCorruptionCheck = lastCorruptionCheck;
     }
     
+    // --- METHOD GETTER/SETTER FUNDAMENTAL ---
     public boolean canDrop(long intervalSeconds) {
         return System.currentTimeMillis() - lastDrop >= (intervalSeconds * 1000);
     }
@@ -57,10 +59,7 @@ public class Generator {
     
     public String getLocationString() {
         if (location == null || location.getWorld() == null) return "unknown";
-        return location.getWorld().getName() + "," + 
-               location.getBlockX() + "," + 
-               location.getBlockY() + "," + 
-               location.getBlockZ();
+        return location.getWorld().getName() + "," + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ();
     }
     
     public String getId() { return id; }
@@ -75,15 +74,4 @@ public class Generator {
     public void setCorrupted(boolean corrupted) { this.corrupted = corrupted; }
     public long getLastCorruptionCheck() { return lastCorruptionCheck; }
     public void setLastCorruptionCheck(long lastCorruptionCheck) { this.lastCorruptionCheck = lastCorruptionCheck; }
-    
-    @Override
-    public String toString() {
-        return "Generator{" +
-                "id='" + id + '\'' +
-                ", owner=" + owner +
-                ", location=" + getLocationString() +
-                ", type='" + type + '\'' +
-                ", corrupted=" + corrupted +
-                '}';
-    }
 }

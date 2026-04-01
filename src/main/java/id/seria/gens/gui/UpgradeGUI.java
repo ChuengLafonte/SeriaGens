@@ -77,8 +77,8 @@ public class UpgradeGUI extends BaseGUI {
         }
         
         ItemStack back = createItem(Material.DARK_OAK_DOOR, guiCfg.getString("upgrade.back-btn", "&cKembali"));
-        inventory.setItem(22, back);
-        setAction(22, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
+        inventory.setItem(26, back);
+        setAction(26, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
     }
     
     private void showRepairMenu() {
@@ -103,10 +103,10 @@ public class UpgradeGUI extends BaseGUI {
         });
         
         ItemStack back = createItem(Material.DARK_OAK_DOOR, guiCfg.getString("upgrade.back-btn", "&cKembali"));
-        inventory.setItem(22, back);
-        setAction(22, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
+        inventory.setItem(26, back);
+        setAction(26, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
     }
-    
+
     private ItemStack buildDisplayItem(String type, boolean next) {
         FileConfiguration guiCfg = plugin.getConfigManager().getGuiConfig();
         ConfigurationSection genConfig = plugin.getConfigManager().getGeneratorsConfig().getConfigurationSection(type);
@@ -124,9 +124,8 @@ public class UpgradeGUI extends BaseGUI {
                                guiCfg.getString("upgrade.display-current", "&e&lCURRENT: {name}");
         meta.setDisplayName(plugin.getConfigManager().colorize(format.replace("{name}", displayName)));
         
-        List<String> loreConfig = guiCfg.getStringList("upgrade.display-lore");
         List<String> lore = new ArrayList<>();
-        for(String l : loreConfig) {
+        for(String l : guiCfg.getStringList("upgrade.display-lore")) {
             lore.add(plugin.getConfigManager().colorize(l.replace("{type}", type).replace("{interval}", String.valueOf(genConfig.getInt("interval", 20)))));
         }
         
@@ -140,7 +139,7 @@ public class UpgradeGUI extends BaseGUI {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(plugin.getConfigManager().colorize(name));
         List<String> loreList = new ArrayList<>();
-        for (String line : lore) { loreList.add(plugin.getConfigManager().colorize(line)); }
+        for (String line : lore) loreList.add(plugin.getConfigManager().colorize(line));
         meta.setLore(loreList);
         item.setItemMeta(meta);
         return item;
@@ -152,7 +151,9 @@ public class UpgradeGUI extends BaseGUI {
         meta.setDisplayName(" ");
         glass.setItemMeta(meta);
         for (int i = 0; i < inventory.getSize(); i++) {
-            if (i < 10 || i > 16 || i % 9 == 0 || (i + 1) % 9 == 0) { inventory.setItem(i, glass); }
+            if (i < 10 || i > 16 || i % 9 == 0 || (i + 1) % 9 == 0) { 
+                inventory.setItem(i, glass); 
+            }
         }
     }
 }

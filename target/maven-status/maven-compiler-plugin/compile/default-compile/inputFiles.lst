@@ -1,6 +1,7 @@
 E:\BentoGens\src\main\java\id\seria\gens\gui\AdminViewGUI.java
 E:\BentoGens\src\main\java\id\seria\gens\gui\UpgradeGUI.java
 E:\BentoGens\src\main\java\id\seria\gens\integration\BentoBoxIntegration.java
+E:\BentoGens\src\main\java\id\seria\gens\managers\FuelManager.java
 E:\BentoGens\src\main\java\id\seria\gens\managers\DatabaseManager.java
 E:\BentoGens\src\main\java\id\seria\gens\listeners\GeneratorListener.java
 E:\BentoGens\src\main\java\id\seria\gens\commands\EventCommand.java
@@ -10,9 +11,11 @@ E:\BentoGens\src\main\java\id\seria\gens\models\SellwandData.java
 E:\BentoGens\src\main\java\id\seria\gens\models\GeneratorDrop.java
 E:\BentoGens\src\main\java\id\seria\gens\integration\FancyHologramsIntegration.java
 E:\BentoGens\src\main\java\id\seria\gens\listeners\SellWandListener.java
+E:\BentoGens\src\main\java\id\seria\gens\models\PlayerGlobalGrid.java
 E:\BentoGens\src\main\java\id\seria\gens\commands\ShopCommand.java
 E:\BentoGens\src\main\java\id\seria\gens\listeners\WorldLoadListener.java
 E:\BentoGens\src\main\java\id\seria\gens\managers\RequirementsChecker.java
+E:\BentoGens\src\main\java\id\seria\gens\utils\ItemSerializer.java
 E:\BentoGens\src\main\java\id\seria\gens\integration\SeriaGensExpansion.java
 E:\BentoGens\src\main\java\id\seria\gens\listeners\GUIListener.java
 E:\BentoGens\src\main\java\id\seria\gens\gui\BaseGUI.java

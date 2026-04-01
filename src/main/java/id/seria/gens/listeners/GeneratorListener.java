@@ -1,29 +1,18 @@
 package id.seria.gens.listeners;
 
-import id.seria.gens.SeriaGens;
-import id.seria.gens.gui.UpgradeGUI;
-import id.seria.gens.models.Generator;
-import id.seria.gens.managers.RequirementsChecker.RequirementResult;
-import id.seria.gens.managers.RequirementsChecker.RequirementType;
-import id.seria.gens.integration.BentoBoxIntegration;
-
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.lang.reflect.Method;
-import java.util.UUID;
+import id.seria.gens.SeriaGens;
+import id.seria.gens.integration.BentoBoxIntegration;
+import id.seria.gens.managers.RequirementsChecker.RequirementResult;
+import id.seria.gens.managers.RequirementsChecker.RequirementType;
 
 public class GeneratorListener implements Listener {
     
@@ -82,57 +71,64 @@ public class GeneratorListener implements Listener {
         }
     }
     
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onGeneratorBreak(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        Generator gen = plugin.getGeneratorManager().getGenerator(block.getLocation());
-        
-        if (gen == null) return;
-        
-        Player player = event.getPlayer();
-        
-        if (!player.hasPermission("seriagens.break") && !player.hasPermission("seriagens.admin")) {
-            event.setCancelled(true);
-            player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
-            return;
-        }
-        
-        if (!gen.getOwner().equals(player.getUniqueId()) && !player.hasPermission("seriagens.admin")) {
-            event.setCancelled(true);
-            player.sendMessage(plugin.getConfigManager().colorize("&cThis is not your generator!"));
-            return;
-        }
-        
-        event.setDropItems(false);
-        event.setExpToDrop(0);
-        
-        plugin.getGeneratorManager().removeGenerator(block.getLocation(), player);
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onGeneratorBreak(org.bukkit.event.block.BlockBreakEvent event) {
+    org.bukkit.block.Block block = event.getBlock();
+    id.seria.gens.models.Generator gen = plugin.getGeneratorManager().getGenerator(block.getLocation());
+    
+    if (gen == null) return;
+    
+    // PROTEKSI: ANTI-EXPLOIT RUSAK
+    if (gen.isCorrupted()) {
+        event.setCancelled(true);
+        event.getPlayer().sendMessage(plugin.getConfigManager().colorize("&c&l⚠ &cGenerator ini sedang rusak! Perbaiki dulu sebelum dibongkar."));
+        return;
     }
     
+    org.bukkit.entity.Player player = event.getPlayer();
+    if (!player.hasPermission("seriagens.break") && !player.hasPermission("seriagens.admin")) {
+        event.setCancelled(true);
+        player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
+        return;
+    }
+    
+    if (!gen.getOwner().equals(player.getUniqueId()) && !player.hasPermission("seriagens.admin")) {
+        event.setCancelled(true);
+        player.sendMessage(plugin.getConfigManager().colorize("&cThis is not your generator!"));
+        return;
+    }
+    
+    event.setDropItems(false);
+    event.setExpToDrop(0);
+    plugin.getGeneratorManager().removeGenerator(block.getLocation(), player);
+}
+
     @EventHandler
-    public void onGeneratorInteract(PlayerInteractEvent event) {
-        // Hanya proses Klik Kanan (Upgrade/Repair) dan Klik Kiri (Pickup)
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+    public void onGeneratorInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK && event.getAction() != org.bukkit.event.block.Action.LEFT_CLICK_BLOCK) return;
         
-        Block block = event.getClickedBlock();
+        org.bukkit.block.Block block = event.getClickedBlock();
         if (block == null) return;
         
-        Generator gen = plugin.getGeneratorManager().getGenerator(block.getLocation());
+        id.seria.gens.models.Generator gen = plugin.getGeneratorManager().getGenerator(block.getLocation());
         if (gen == null) return;
         
-        event.setCancelled(true); // Membatalkan animasi hancur blok default Vanilla
-        Player player = event.getPlayer();
+        event.setCancelled(true); 
+        org.bukkit.entity.Player player = event.getPlayer();
         
         if (!gen.getOwner().equals(player.getUniqueId()) && !player.hasPermission("seriagens.admin")) {
             player.sendMessage(plugin.getConfigManager().colorize("&cIni bukan generator milikmu!"));
             return;
         }
         
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            // KLIK KANAN: Buka Menu Upgrade/Repair
-            new UpgradeGUI(plugin, player, gen).open();
-        } else if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-            // KLIK KIRI: 1-Tap Pickup Instan
+        if (event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+            new id.seria.gens.gui.UpgradeGUI(plugin, player, gen).open();
+        } else if (event.getAction() == org.bukkit.event.block.Action.LEFT_CLICK_BLOCK) {
+            // PROTEKSI: ANTI-EXPLOIT KLIK KIRI
+            if (gen.isCorrupted()) {
+                player.sendMessage(plugin.getConfigManager().colorize("&c&l⚠ &cMesin rusak tidak bisa dicabut! Perbaiki lewat menu (Klik Kanan)."));
+                return;
+            }
             plugin.getGeneratorManager().removeGenerator(block.getLocation(), player);
         }
     }

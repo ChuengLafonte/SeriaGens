@@ -1,9 +1,10 @@
 package id.seria.gens.integration;
 
-import id.seria.gens.SeriaGens;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+
+import id.seria.gens.SeriaGens;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
 public class SeriaGensExpansion extends PlaceholderExpansion {
     
@@ -54,6 +55,17 @@ public class SeriaGensExpansion extends PlaceholderExpansion {
             
             if (params.equalsIgnoreCase("corrupted")) {
                 return String.valueOf(plugin.getCorruptionManager().getCorruptedCount(p));
+            }
+
+            if (params.startsWith("joules_")) {
+                String genType = params.substring("joules_".length());
+                return String.valueOf(plugin.getGeneratorManager().getJoules(p.getUniqueId(), genType));
+            }
+
+            if (params.equalsIgnoreCase("total_joules")) {
+                // Tampilkan TENAGA JOULE Garden Induk Global Owner
+                int globalJoules = plugin.getFuelManager().getGlobalGrid(player.getUniqueId()).getCurrentJoules();
+                return String.valueOf(globalJoules);
             }
         }
         

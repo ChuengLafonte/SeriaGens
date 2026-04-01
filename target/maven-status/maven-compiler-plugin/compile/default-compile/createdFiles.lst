@@ -1,6 +1,8 @@
 id\seria\gens\gui\BaseGUI.class
+id\seria\gens\models\PlayerGlobalGrid.class
 id\seria\gens\integration\ShopGUIPlusIntegration.class
 id\seria\gens\listeners\ChunkListener.class
+id\seria\gens\managers\FuelManager$FuelData.class
 id\seria\gens\managers\RequirementsChecker.class
 id\seria\gens\managers\DatabaseManager.class
 id\seria\gens\commands\EventCommand.class
@@ -14,6 +16,7 @@ id\seria\gens\SeriaGens.class
 id\seria\gens\commands\SellCommand.class
 id\seria\gens\managers\SellManager.class
 id\seria\gens\managers\EventManager$GeneratorUpgradeEvent.class
+id\seria\gens\managers\FuelManager.class
 id\seria\gens\managers\EventManager.class
 id\seria\gens\commands\ShopCommand.class
 id\seria\gens\gui\UpgradeGUI.class
@@ -24,6 +27,7 @@ id\seria\gens\managers\EventManager$GeneratorSpeedEvent.class
 id\seria\gens\integration\SeriaGensExpansion.class
 id\seria\gens\gui\AdminViewGUI.class
 id\seria\gens\managers\EventManager$SellMultiplierEvent.class
+id\seria\gens\utils\ItemSerializer.class
 id\seria\gens\commands\GensetCommand.class
 id\seria\gens\integration\BentoBoxIntegration.class
 id\seria\gens\models\SellwandData.class
@@ -37,7 +41,9 @@ id\seria\gens\models\Generator.class
 id\seria\gens\managers\EventManager$MixedUpEvent.class
 id\seria\gens\gui\BaseGUI$GUIAction.class
 id\seria\gens\managers\GeneratorManager$PendingGenerator.class
+id\seria\gens\managers\DatabaseManager$GlobalFuelData.class
 id\seria\gens\commands\MainCommand.class
 id\seria\gens\managers\ConfigManager.class
 id\seria\gens\models\GeneratorDrop.class
+id\seria\gens\gui\GeneratorManagementGUI$ConfigItem.class
 id\seria\gens\managers\RequirementsChecker$RequirementType.class

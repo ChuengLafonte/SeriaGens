@@ -1,6 +1,7 @@
 coal_gens:
   display-name: "&#3C3C3C⛏ Coal Generator" 
   interval: 50
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 50
@@ -45,6 +46,7 @@ coal_gens:
 iron_gens:
   display-name: "&#bdc3c7⛏ Iron Generator"
   interval: 45
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 100
@@ -89,6 +91,7 @@ iron_gens:
 copper_gens:
   display-name: "&#ff7f17⛏ Copper Generator"
   interval: 40
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 200
@@ -133,6 +136,7 @@ copper_gens:
 gold_gens:
   display-name: "&#f1c40f⛏ Gold Generator"
   interval: 35
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 500
@@ -177,6 +181,7 @@ gold_gens:
 redstone_gens:
   display-name: "&#e74c3c⛏ Redstone Generator"
   interval: 30
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 1000
@@ -221,6 +226,7 @@ redstone_gens:
 emerald_gens:
   display-name: "&#2ecc71⛏ Emerald Generator"
   interval: 28
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 2500
@@ -265,6 +271,7 @@ emerald_gens:
 lapis_gens:
   display-name: "&#3498db⛏ Lapis Generator"
   interval: 25
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 5000
@@ -309,6 +316,7 @@ lapis_gens:
 diamond_gens:
   display-name: "&#00d9ff⛏ Diamond Generator"
   interval: 22
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 10000
@@ -353,6 +361,7 @@ diamond_gens:
 debris_gens:
   display-name: "&#8B4513⛏ Ancient Debris Generator"
   interval: 20
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 25000
@@ -397,6 +406,7 @@ debris_gens:
 netherite_gens:
   display-name: "&#5C5470⛏ Netherite Generator"
   interval: 18
+  max-joules: 500
   corrupted:
     enabled: true
     cost: 50000
@@ -441,6 +451,7 @@ netherite_gens:
 deepslate_iron_gens:
   display-name: "&#2C3639⛏ Deepslate Iron Generator"
   interval: 18
+  max-joules: 500
   corrupted:
     enabled: false
     cost: 0
