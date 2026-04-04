@@ -27,7 +27,7 @@ public class DatabaseManager {
         this.type = plugin.getConfig().getString("database.type", "SQLITE");
     }
     
-    public void initialize() {
+    public synchronized void initialize() {
         try {
             if (type.equalsIgnoreCase("MYSQL")) {
                 connectMySQL();
@@ -126,7 +126,7 @@ public class DatabaseManager {
         return true;
     }
     
-    private void recoverDatabase() {
+    private synchronized void recoverDatabase() {
         if (type.equalsIgnoreCase("SQLITE")) {
             try {
                 File dbFile = new File(plugin.getDataFolder(), "database.db");
@@ -169,7 +169,8 @@ public class DatabaseManager {
         return CompletableFuture.runAsync(() -> saveGeneratorSync(generator));
     }
     
-    public void saveGeneratorSync(Generator generator) {
+    // SYNCHRONIZED: Mencegah error SQLITE_BUSY (Locked) saat save massal & save satuan bertabrakan
+    public synchronized void saveGeneratorSync(Generator generator) {
         if (isClosing || connection == null) return;
         
         String sql = type.equalsIgnoreCase("MYSQL") 
@@ -180,10 +181,10 @@ public class DatabaseManager {
             Location loc = generator.getLocation();
             stmt.setString(1, generator.getId());
             stmt.setString(2, generator.getOwner().toString());
-            stmt.setString(3, loc.getWorld().getName());
-            stmt.setInt(4, loc.getBlockX());
-            stmt.setInt(5, loc.getBlockY());
-            stmt.setInt(6, loc.getBlockZ());
+            stmt.setString(3, generator.getWorldName()); // Memanggil nama world dengan aman
+            stmt.setInt(4, loc != null ? loc.getBlockX() : 0);
+            stmt.setInt(5, loc != null ? loc.getBlockY() : 0);
+            stmt.setInt(6, loc != null ? loc.getBlockZ() : 0);
             stmt.setString(7, generator.getType());
             stmt.setLong(8, generator.getLastDrop());
             stmt.setLong(9, generator.getPlacedAt());
@@ -195,7 +196,7 @@ public class DatabaseManager {
         }
     }
     
-    public List<Generator> loadAllGenerators() {
+    public synchronized List<Generator> loadAllGenerators() {
         List<Generator> generators = new ArrayList<>();
         if (connection == null) return generators;
         
@@ -208,18 +209,19 @@ public class DatabaseManager {
                     String id = rs.getString("id");
                     UUID owner = UUID.fromString(rs.getString("owner"));
                     String worldName = rs.getString("world");
+                    
+                    // PERBAIKAN: Tidak perlu "if (world == null) continue;"
+                    // Biarkan class Location menyimpan null. Nanti WorldLoadListener yang akan memprosesnya!
                     World world = Bukkit.getWorld(worldName);
-                    
-                    if (world == null) continue;
-                    
                     Location location = new Location(world, rs.getInt("x"), rs.getInt("y"), rs.getInt("z"));
+                    
                     String type = rs.getString("type");
                     long lastDrop = rs.getLong("last_drop");
                     long placedAt = rs.getLong("placed_at");
                     boolean corrupted = rs.getBoolean("corrupted");
                     long lastCorruptionCheck = rs.getLong("last_corruption_check");
                     
-                    Generator gen = new Generator(id, owner, location, type, lastDrop, placedAt, corrupted, lastCorruptionCheck);
+                    Generator gen = new Generator(id, owner, location, worldName, type, lastDrop, placedAt, corrupted, lastCorruptionCheck);
                     generators.add(gen);
                     
                 } catch (Exception e) {
@@ -234,20 +236,22 @@ public class DatabaseManager {
     
     public CompletableFuture<Void> deleteGenerator(String id) {
         return CompletableFuture.runAsync(() -> {
-            if (connection == null) return;
-            String sql = "DELETE FROM generators WHERE id = ?";
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.setString(1, id);
-                stmt.executeUpdate();
-            } catch (SQLException e) {
-                plugin.getLogger().severe("Failed to delete generator: " + e.getMessage());
+            synchronized (this) {
+                if (connection == null) return;
+                String sql = "DELETE FROM generators WHERE id = ?";
+                try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                    stmt.setString(1, id);
+                    stmt.executeUpdate();
+                } catch (SQLException e) {
+                    plugin.getLogger().severe("Failed to delete generator: " + e.getMessage());
+                }
             }
         });
     }
     
     // --- METHOD GARDU INDUK GLOBAL FUEL ---
     
-    public void saveGlobalFuelSync(UUID player, int joules, ItemStack[] fuels) {
+    public synchronized void saveGlobalFuelSync(UUID player, int joules, ItemStack[] fuels) {
         if (isClosing || connection == null) return;
         String base64 = ItemSerializer.itemStackArrayToBase64(fuels);
         String sql = type.equalsIgnoreCase("MYSQL") 
@@ -264,7 +268,7 @@ public class DatabaseManager {
         }
     }
 
-    public GlobalFuelData loadGlobalFuelSync(UUID player) {
+    public synchronized GlobalFuelData loadGlobalFuelSync(UUID player) {
         if (connection == null) return new GlobalFuelData(0, new ItemStack[5]);
         
         String sql = "SELECT * FROM player_global_fuel WHERE player_uuid = ?";
@@ -289,17 +293,22 @@ public class DatabaseManager {
     public void close() {
         isClosing = true;
         try {
-            // Paksa SQLite menulis semua jurnal WAL ke database utama
-            if (type.equalsIgnoreCase("SQLITE") && connection != null && !connection.isClosed()) {
-                try (Statement stmt = connection.createStatement()) {
-                    stmt.execute("PRAGMA wal_checkpoint(FULL);");
-                } catch (Exception ignored) {}
+            // Paksa SQLite menulis semua jurnal WAL ke database utama dengan aman
+            synchronized (this) {
+                if (type.equalsIgnoreCase("SQLITE") && connection != null && !connection.isClosed()) {
+                    try (Statement stmt = connection.createStatement()) {
+                        stmt.execute("PRAGMA wal_checkpoint(FULL);");
+                    } catch (Exception ignored) {}
+                }
             }
             
-            Thread.sleep(100);
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                plugin.getLogger().info("Database closed safely.");
+            Thread.sleep(100); // Beri jeda sepersekian detik agar proses async memori terselesaikan
+            
+            synchronized (this) {
+                if (connection != null && !connection.isClosed()) {
+                    connection.close();
+                    plugin.getLogger().info("Database closed safely.");
+                }
             }
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to close database safely: " + e.getMessage());

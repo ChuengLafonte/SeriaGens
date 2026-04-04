@@ -12,6 +12,21 @@ messages:
   generator-repaired: '{prefix} &aGenerator berhasil diperbaiki dengan biaya &a●{cost}!'
   generators-returned: '{prefix} &aSebanyak &e{amount} &agenerator telah dikembalikan ke inventory-mu!'
   
+  # Pesan Interaksi Generator
+  generator-not-yours: '{prefix} &cIni bukan aset mesin milikmu!'
+  generator-island-only: '{prefix} &cMesin hanya bisa dipasang di pulaumu sendiri!'
+  generator-corrupted-break: '{prefix} &c&l⚠ &cMesin sedang rusak! Perbaiki dulu sebelum dibongkar.'
+  generator-corrupted-interact: '{prefix} &c&l⚠ &cMesin rusak tidak bisa dicabut! Klik Kanan untuk repair.'
+  inventory-full-drop: '{prefix} &e&l⚠ &fInventory penuh! Mesin dijatuhkan ke tanah.'
+  
+  # Pesan Sell Wand
+  sellwand-no-permission: '{prefix} &cKamu tidak memiliki izin menggunakan Sell Wand!'
+  sellwand-not-container: '{prefix} &cHanya bisa digunakan pada Chest/Barrel/Hopper!'
+  sellwand-broken: '{prefix} &cSell Wand ini sudah rusak/habis!'
+  sellwand-no-items: '{prefix} &cTidak ada hasil mesin yang bisa dijual di sini.'
+  sellwand-sell-success: '{prefix} &aBerhasil menjual &e{items} item &aseharga &e●{value} &7({multiplier}x)'
+  sellwand-broke-notify: '{prefix} &c&l⚠ &cSell Wand milikmu telah hancur!'
+  
   help-normal:
   - '&6&lSeriaGens &7- Sistem Aset'
   - '&6/sgens help &7- Menampilkan bantuan ini'

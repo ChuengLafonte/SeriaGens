@@ -26,6 +26,7 @@ public class SeriaGensExpansion extends PlaceholderExpansion {
     @Override
     public String getIdentifier() { return "seriagens"; }
     
+    @SuppressWarnings("deprecation")
     @Override
     public String getVersion() { return plugin.getDescription().getVersion(); }
     

@@ -1,12 +1,12 @@
 package id.seria.gens.utils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 public class ItemSerializer {
     
@@ -39,7 +39,9 @@ public class ItemSerializer {
             dataInput.close();
             return items;
         } catch (Exception e) {
-            return new ItemStack[5]; // Kembalikan kosong jika gagal
+            System.out.println("[SeriaGens] ⚠ GAGAL MEMUAT DATA FUEL BASE64: " + e.getMessage());
+            e.printStackTrace();
+            return new ItemStack[5]; // Kembalikan kosong jika gagal membaca
         }
     }
 }

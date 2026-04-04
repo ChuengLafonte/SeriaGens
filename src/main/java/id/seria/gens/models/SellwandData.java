@@ -37,84 +37,61 @@ public class SellwandData {
     public boolean hasBroken() { return uses == 0; }
     
     public void decreaseUses() {
-        if (!isUnlimited() && uses > 0) {
-            uses--;
-        }
+        if (!isUnlimited() && uses > 0) uses--;
     }
     
     public void updateItem(SeriaGens plugin) {
         if (item == null || item.getType() == Material.AIR) return;
-        
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return;
         
-        String usesDisplay = isUnlimited() ? "&aUnlimited" : "&e" + uses;
-        String displayName = plugin.getConfigManager().colorize("&#f69220&l⚡ SELL WAND &7(" + multiplier + "x)");
-        meta.setDisplayName(displayName);
+        String unlimText = plugin.getConfig().getString("sellwand-item.unlimited-text", "&aUnlimited");
+        String usesDisplay = isUnlimited() ? unlimText : "&e" + uses;
         
+        String nameFormat = plugin.getConfig().getString("sellwand-item.name", "Sell Wand");
+        meta.setDisplayName(plugin.getConfigManager().colorize(nameFormat.replace("{multiplier}", String.valueOf(multiplier))));
+        
+        List<String> loreFormat = plugin.getConfig().getStringList("sellwand-item.lore");
         List<String> lore = new ArrayList<>();
-        lore.add(plugin.getConfigManager().colorize("&7"));
-        lore.add(plugin.getConfigManager().colorize("&b・&7Right Click &f→ &cSell Container"));
-        lore.add(plugin.getConfigManager().colorize("&7"));
-        lore.add(plugin.getConfigManager().colorize("&c&nUsable on:"));
-        lore.add(plugin.getConfigManager().colorize("&b・&fAll Chests"));
-        lore.add(plugin.getConfigManager().colorize("&b・&fBarrels"));
-        lore.add(plugin.getConfigManager().colorize("&b・&fHoppers"));
-        lore.add(plugin.getConfigManager().colorize("&b・&fShulker Boxes"));
-        lore.add(plugin.getConfigManager().colorize("&7"));
-        lore.add(plugin.getConfigManager().colorize("&c&nInformation:"));
-        lore.add(plugin.getConfigManager().colorize("&b・&cMultiplier: &f" + multiplier + "x"));
-        lore.add(plugin.getConfigManager().colorize("&b・&cUses: &f" + usesDisplay));
-        lore.add(plugin.getConfigManager().colorize("&7"));
-        lore.add(plugin.getConfigManager().colorize("&#f69220&l✦ &fQuick Sell Tool"));
-        
+        for (String line : loreFormat) {
+            lore.add(plugin.getConfigManager().colorize(line
+                .replace("{multiplier}", String.valueOf(multiplier))
+                .replace("{uses}", usesDisplay)
+            ));
+        }
         meta.setLore(lore);
         
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        NamespacedKey wandKey = new NamespacedKey(plugin, SELLWAND_KEY);
-        NamespacedKey multKey = new NamespacedKey(plugin, MULTIPLIER_KEY);
-        NamespacedKey usesKey = new NamespacedKey(plugin, USES_KEY);
-        
-        pdc.set(wandKey, PersistentDataType.BYTE, (byte) 1);
-        pdc.set(multKey, PersistentDataType.DOUBLE, multiplier);
-        pdc.set(usesKey, PersistentDataType.INTEGER, uses);
-        
+        pdc.set(new NamespacedKey(plugin, SELLWAND_KEY), PersistentDataType.BYTE, (byte) 1);
+        pdc.set(new NamespacedKey(plugin, MULTIPLIER_KEY), PersistentDataType.DOUBLE, multiplier);
+        pdc.set(new NamespacedKey(plugin, USES_KEY), PersistentDataType.INTEGER, uses);
         item.setItemMeta(meta);
     }
     
     public static ItemStack createSellwand(SeriaGens plugin, double multiplier, int uses) {
-        ItemStack item = new ItemStack(Material.BLAZE_ROD);
+        String matName = plugin.getConfig().getString("sellwand-item.material", "BLAZE_ROD");
+        Material mat = Material.matchMaterial(matName);
+        ItemStack item = new ItemStack(mat != null ? mat : Material.BLAZE_ROD);
         ItemMeta meta = item.getItemMeta();
-        
         meta.addEnchant(Enchantment.UNBREAKING, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(meta);
         
         SellwandData data = new SellwandData(item, multiplier, uses);
         data.updateItem(plugin);
-        
         return item;
     }
     
     public static boolean isSellwand(SeriaGens plugin, ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
-        
-        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
-        NamespacedKey key = new NamespacedKey(plugin, SELLWAND_KEY);
-        
-        return pdc.has(key, PersistentDataType.BYTE);
+        return item.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, SELLWAND_KEY), PersistentDataType.BYTE);
     }
     
     public static SellwandData fromItem(SeriaGens plugin, ItemStack item) {
         if (!isSellwand(plugin, item)) return null;
-        
         PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
-        NamespacedKey multKey = new NamespacedKey(plugin, MULTIPLIER_KEY);
-        NamespacedKey usesKey = new NamespacedKey(plugin, USES_KEY);
-        
-        double multiplier = pdc.getOrDefault(multKey, PersistentDataType.DOUBLE, 1.0);
-        int uses = pdc.getOrDefault(usesKey, PersistentDataType.INTEGER, -1);
-        
+        double multiplier = pdc.getOrDefault(new NamespacedKey(plugin, MULTIPLIER_KEY), PersistentDataType.DOUBLE, 1.0);
+        int uses = pdc.getOrDefault(new NamespacedKey(plugin, USES_KEY), PersistentDataType.INTEGER, -1);
         return new SellwandData(item, multiplier, uses);
     }
 }

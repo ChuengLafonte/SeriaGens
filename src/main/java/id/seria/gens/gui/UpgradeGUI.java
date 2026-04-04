@@ -2,6 +2,7 @@ package id.seria.gens.gui;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -9,10 +10,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
 import id.seria.gens.SeriaGens;
-import id.seria.gens.models.Generator;
 import id.seria.gens.managers.RequirementsChecker.RequirementResult;
 import id.seria.gens.managers.RequirementsChecker.RequirementType;
+import id.seria.gens.models.Generator;
 
 public class UpgradeGUI extends BaseGUI {
     
@@ -76,9 +78,12 @@ public class UpgradeGUI extends BaseGUI {
             });
         }
         
-        ItemStack back = createItem(Material.DARK_OAK_DOOR, guiCfg.getString("upgrade.back-btn", "&cKembali"));
-        inventory.setItem(26, back);
-        setAction(26, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
+        int backSlot = guiCfg.getInt("upgrade.back-btn-slot", 26);
+        ItemStack back = createItem(Material.DARK_OAK_DOOR, guiCfg.getString("upgrade.back-btn", "&c⬅ Kembali ke Gardu Induk"));
+        if(backSlot < inventory.getSize()) {
+            inventory.setItem(backSlot, back);
+            setAction(backSlot, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
+        }
     }
     
     private void showRepairMenu() {
@@ -102,11 +107,15 @@ public class UpgradeGUI extends BaseGUI {
             }
         });
         
-        ItemStack back = createItem(Material.DARK_OAK_DOOR, guiCfg.getString("upgrade.back-btn", "&cKembali"));
-        inventory.setItem(26, back);
-        setAction(26, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
+        int backSlot = guiCfg.getInt("upgrade.back-btn-slot", 26);
+        ItemStack back = createItem(Material.DARK_OAK_DOOR, guiCfg.getString("upgrade.back-btn", "&c⬅ Kembali ke Gardu Induk"));
+        if(backSlot < inventory.getSize()) {
+            inventory.setItem(backSlot, back);
+            setAction(backSlot, (p, event) -> new GeneratorManagementGUI(plugin, p).open());
+        }
     }
 
+    @SuppressWarnings("deprecation")
     private ItemStack buildDisplayItem(String type, boolean next) {
         FileConfiguration guiCfg = plugin.getConfigManager().getGuiConfig();
         ConfigurationSection genConfig = plugin.getConfigManager().getGeneratorsConfig().getConfigurationSection(type);
@@ -124,9 +133,16 @@ public class UpgradeGUI extends BaseGUI {
                                guiCfg.getString("upgrade.display-current", "&e&lCURRENT: {name}");
         meta.setDisplayName(plugin.getConfigManager().colorize(format.replace("{name}", displayName)));
         
+        // PERBAIKAN: Menerjemahkan placeholder {fuel_cost}
+        int fuelCost = genConfig.getInt("joule-cost-per-drop", 1);
+        
         List<String> lore = new ArrayList<>();
         for(String l : guiCfg.getStringList("upgrade.display-lore")) {
-            lore.add(plugin.getConfigManager().colorize(l.replace("{type}", type).replace("{interval}", String.valueOf(genConfig.getInt("interval", 20)))));
+            lore.add(plugin.getConfigManager().colorize(l
+                .replace("{type}", type)
+                .replace("{interval}", String.valueOf(genConfig.getInt("interval", 20)))
+                .replace("{fuel_cost}", String.valueOf(fuelCost))
+            ));
         }
         
         meta.setLore(lore);
@@ -134,6 +150,7 @@ public class UpgradeGUI extends BaseGUI {
         return item;
     }
     
+    @SuppressWarnings("deprecation")
     private ItemStack createItem(Material material, String name, String... lore) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
@@ -145,6 +162,7 @@ public class UpgradeGUI extends BaseGUI {
         return item;
     }
     
+    @SuppressWarnings("deprecation")
     private void fillBorders(Material material) {
         ItemStack glass = new ItemStack(material);
         ItemMeta meta = glass.getItemMeta();

@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -25,6 +24,7 @@ public abstract class BaseGUI implements InventoryHolder, Listener {
     // Track open GUIs
     private static final Map<UUID, BaseGUI> openGUIs = new HashMap<>();
     
+    @SuppressWarnings("deprecation")
     public BaseGUI(Player player, String title, int size) {
         this.player = player;
         this.inventory = Bukkit.createInventory(this, size, title);

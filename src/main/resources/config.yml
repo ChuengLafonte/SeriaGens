@@ -150,3 +150,21 @@ hologram:
     
     # Hologram height (blocks above generator)
     height: 2.0
+
+sellwand-item:
+  material: BLAZE_ROD
+  name: '&#f69220&l⚡ TONGKAT PENJUAL &7({multiplier}x)'
+  unlimited-text: '&aUnlimited'
+  lore:
+    - '&7'
+    - '&b・&7Klik Kanan &f→ &cJual Isi Chest'
+    - '&7'
+    - '&c&nBisa digunakan pada:'
+    - '&b・&fSemua jenis Chest & Barrel'
+    - '&b・&fHopper & Shulker Box'
+    - '&7'
+    - '&c&nInformasi Alat:'
+    - '&b・&cMultiplier: &f{multiplier}x'
+    - '&b・&cSisa Pakai: &f{uses}'
+    - '&7'
+    - '&#f69220&l✦ &fAlat Jual Cepat'

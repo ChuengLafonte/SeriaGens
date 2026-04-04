@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
@@ -28,7 +28,10 @@ public class AdminViewGUI extends BaseGUI {
     }
 
     public AdminViewGUI(SeriaGens plugin, Player admin, OfflinePlayer target, int page) {
-        super(admin, plugin.getConfigManager().colorize("&c&l[Admin] &8Aset: &n" + target.getName()), 54);
+        super(admin, plugin.getConfigManager().colorize(
+            plugin.getConfigManager().getGuiConfig().getString("admin-view.title", "&c&l[CCTV] &8Aset: &n{player}")
+            .replace("{player}", target.getName() != null ? target.getName() : "Unknown")
+        ), plugin.getConfigManager().getGuiConfig().getInt("admin-view.size", 54));
         this.plugin = plugin;
         this.target = target;
         this.page = page;
@@ -38,73 +41,83 @@ public class AdminViewGUI extends BaseGUI {
     public void init() {
         targetGenerators = plugin.getGeneratorManager().getAllGenerators().stream()
             .filter(g -> g.getOwner().equals(target.getUniqueId())).collect(Collectors.toList());
-            
         fillBorders();
         populateGenerators();
     }
 
+    @SuppressWarnings("deprecation")
     private void populateGenerators() {
-        int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
-        int startIndex = page * slots.length;
+        FileConfiguration guiCfg = plugin.getConfigManager().getGuiConfig();
+        List<Integer> slots = guiCfg.getIntegerList("admin-view.generator-slots");
+        int startIndex = page * slots.size();
 
-        for (int i = 0; i < slots.length; i++) {
+        for (int i = 0; i < slots.size(); i++) {
             int genIndex = startIndex + i;
+            int slot = slots.get(i);
+            
             if (genIndex < targetGenerators.size()) {
                 Generator gen = targetGenerators.get(genIndex);
                 ItemStack item = plugin.getGeneratorManager().getGeneratorItem(gen.getType());
                 ItemMeta meta = item.getItemMeta();
                 
-                String status = gen.isCorrupted() ? "&c&lRUSAK" : "&a&lAKTIF";
+                String statusNormal = guiCfg.getString("admin-view.status-normal", "&a&lAKTIF");
+                String statusCorrupted = guiCfg.getString("admin-view.status-corrupted", "&c&lRUSAK");
+                String status = gen.isCorrupted() ? statusCorrupted : statusNormal;
                 
                 List<String> lore = new ArrayList<>();
-                lore.add(plugin.getConfigManager().colorize("&8&m━━━━━━━━━━━━━━━━━━━━"));
-                lore.add(plugin.getConfigManager().colorize("&7Status: " + status));
-                lore.add(plugin.getConfigManager().colorize("&7Lokasi: &e" + gen.getLocation().getBlockX() + ", " + gen.getLocation().getBlockY() + ", " + gen.getLocation().getBlockZ()));
-                lore.add("");
-                lore.add(plugin.getConfigManager().colorize("&b[Klik Kiri] &7Teleport ke Mesin"));
-                lore.add(plugin.getConfigManager().colorize("&c[Klik Kanan] &7Cabut/Pickup Paksa"));
+                for(String line : guiCfg.getStringList("admin-view.generator-lore")) {
+                    lore.add(plugin.getConfigManager().colorize(line
+                        .replace("{status}", status)
+                        .replace("{x}", String.valueOf(gen.getLocation().getBlockX()))
+                        .replace("{y}", String.valueOf(gen.getLocation().getBlockY()))
+                        .replace("{z}", String.valueOf(gen.getLocation().getBlockZ()))
+                    ));
+                }
                 
                 meta.setLore(lore);
                 item.setItemMeta(meta);
-
-                inventory.setItem(slots[i], item);
+                inventory.setItem(slot, item);
                 
-                setAction(slots[i], (p, event) -> {
+                setAction(slot, (p, event) -> {
                     if (event.getClick() == ClickType.LEFT) {
-                        // Fitur Teleport
                         p.teleport(gen.getLocation().clone().add(0.5, 1, 0.5));
                         p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                        p.sendMessage(plugin.getConfigManager().colorize("&aTeleportasi ke aset milik &e" + target.getName() + "&a."));
                     } else if (event.getClick() == ClickType.RIGHT) {
-                        // Fitur Hapus/Pickup Paksa
                         Player onlineTarget = target.isOnline() ? target.getPlayer() : null;
                         plugin.getGeneratorManager().removeGenerator(gen.getLocation(), onlineTarget);
                         p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_DESTROY, 1.0f, 1.0f);
-                        p.sendMessage(plugin.getConfigManager().colorize("&cGenerator berhasil dicabut paksa!"));
-                        new AdminViewGUI(plugin, p, target, page).open(); // Refresh GUI
+                        new AdminViewGUI(plugin, p, target, page).open(); 
                     }
                 });
             }
         }
 
-        // Navigasi Halaman
         if (page > 0) {
-            ItemStack prev = createItem(Material.ARROW, "&e⬅ Halaman Sebelumnya");
+            ItemStack prev = createItem(Material.ARROW, "&e⬅ Prev Page");
             inventory.setItem(48, prev);
             setAction(48, (p, event) -> new AdminViewGUI(plugin, p, target, page - 1).open());
         }
-        if (startIndex + slots.length < targetGenerators.size()) {
-            ItemStack next = createItem(Material.ARROW, "&eHalaman Selanjutnya ➡");
+        if (startIndex + slots.size() < targetGenerators.size()) {
+            ItemStack next = createItem(Material.ARROW, "&eNext Page ➡");
             inventory.setItem(50, next);
             setAction(50, (p, event) -> new AdminViewGUI(plugin, p, target, page + 1).open());
         }
         
-        ItemStack info = createItem(Material.PAPER, "&b&lInfo Pemain", 
-            "&7Total Mesin: &e" + targetGenerators.size(),
-            "&7Extra Slot: &a+" + plugin.getConfigManager().getPlayersConfig().getInt(target.getUniqueId().toString() + ".extra-slots", 0));
-        inventory.setItem(49, info);
+        int infoSlot = guiCfg.getInt("admin-view.items.info.slot", 49);
+        String infoName = guiCfg.getString("admin-view.items.info.name", "&b&lInfo Pemain");
+        Material infoMat = Material.matchMaterial(guiCfg.getString("admin-view.items.info.material", "PAPER"));
+        List<String> infoLore = new ArrayList<>();
+        int extraSlots = plugin.getConfigManager().getPlayersConfig().getInt(target.getUniqueId().toString() + ".extra-slots", 0);
+        for(String line : guiCfg.getStringList("admin-view.items.info.lore")) {
+            infoLore.add(plugin.getConfigManager().colorize(line
+                .replace("{count}", String.valueOf(targetGenerators.size()))
+                .replace("{extra_slots}", String.valueOf(extraSlots))
+            ));
+        }
+        inventory.setItem(infoSlot, createItem(infoMat != null ? infoMat : Material.PAPER, infoName, infoLore.toArray(new String[0])));
     }
 
+    @SuppressWarnings("deprecation")
     private ItemStack createItem(Material material, String name, String... lore) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
@@ -116,11 +129,15 @@ public class AdminViewGUI extends BaseGUI {
         return item;
     }
 
+    @SuppressWarnings("deprecation")
     private void fillBorders() {
-        ItemStack glass = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+        String matStr = plugin.getConfigManager().getGuiConfig().getString("admin-view.items.filler.material", "RED_STAINED_GLASS_PANE");
+        Material mat = Material.matchMaterial(matStr);
+        ItemStack glass = new ItemStack(mat != null ? mat : Material.RED_STAINED_GLASS_PANE);
         ItemMeta meta = glass.getItemMeta();
-        meta.setDisplayName(" ");
+        meta.setDisplayName(plugin.getConfigManager().colorize(plugin.getConfigManager().getGuiConfig().getString("admin-view.items.filler.name", " ")));
         glass.setItemMeta(meta);
+        
         for (int i = 0; i < 9; i++) { inventory.setItem(i, glass); inventory.setItem(45 + i, glass); }
         for (int i = 9; i < 45; i += 9) { inventory.setItem(i, glass); inventory.setItem(i + 8, glass); }
     }

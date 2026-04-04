@@ -95,6 +95,7 @@ public class ConfigManager {
         return colorize(msg.replace("{prefix}", commandConfig.getString("messages.prefix", "&6[SeriaGens]")));
     }
     
+    @SuppressWarnings("deprecation")
     public String colorize(String text) {
         if (text == null) return "";
         Matcher matcher = HEX_PATTERN.matcher(text);

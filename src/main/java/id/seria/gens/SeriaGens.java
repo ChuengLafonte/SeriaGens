@@ -1,7 +1,5 @@
 package id.seria.gens;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -70,7 +68,6 @@ public final class SeriaGens extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.loadConfigs();
         
-        // HARUS DIINISIALISASI LEBIH DULU
         fuelManager = new FuelManager(this);
         
         databaseManager = new DatabaseManager(this);
@@ -106,8 +103,9 @@ public final class SeriaGens extends JavaPlugin {
         getCommand("event").setExecutor(new EventCommand(this));
         getCommand("event").setTabCompleter(new EventCommand(this));
         
-        World caveworld = Bukkit.getWorld("caveblock-world");
-        if (caveworld != null) generatorManager.loadGenerators();
+        // PERBAIKAN FATAL: Memaksa plugin memuat data dari DB terlepas dari dunia sudah diload atau belum
+        // Biarkan sistem PendingRestoration yang bekerja!
+        generatorManager.loadGenerators();
         
         startTasks();
         corruptionManager.startCorruptionTask();
@@ -130,7 +128,10 @@ public final class SeriaGens extends JavaPlugin {
     
     private void startTasks() {
         getServer().getScheduler().runTaskTimer(this, () -> generatorManager.tickGenerators(), 20L, 20L);
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> generatorManager.saveAll(), 6000L, 6000L);
+        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            generatorManager.saveAllSync(); // Gunakan Sync dalam Async Thread agar aman
+            if (fuelManager != null) fuelManager.saveAllGrids(); // FUEL SEKARANG IKUT AUTO-SAVE
+        }, 6000L, 6000L); // Auto-save berjalan setiap 5 menit (6000 ticks)
         getServer().getScheduler().runTaskTimer(this, () -> generatorManager.restoreAllBlocks(), 6000L, 6000L);
     }
     

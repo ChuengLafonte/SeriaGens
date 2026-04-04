@@ -1,26 +1,27 @@
 package id.seria.gens.gui;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
 import id.seria.gens.SeriaGens;
 import id.seria.gens.managers.FuelManager;
 import id.seria.gens.managers.RequirementsChecker.RequirementResult;
 import id.seria.gens.managers.RequirementsChecker.RequirementType;
 import id.seria.gens.models.Generator;
 import id.seria.gens.models.PlayerGlobalGrid;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class GeneratorManagementGUI extends BaseGUI {
     
@@ -31,7 +32,7 @@ public class GeneratorManagementGUI extends BaseGUI {
     private List<Generator> allPlayerGens;
     private final List<Integer> genSlots;
     
-    private int refreshTaskId = -1; // Task ID untuk Live Update
+    private int refreshTaskId = -1;
     
     public GeneratorManagementGUI(SeriaGens plugin, Player player) {
         super(player, 
@@ -58,38 +59,30 @@ public class GeneratorManagementGUI extends BaseGUI {
         showManagementMenu();
     }
     
-    // Override metode open untuk menjalankan Auto-Refresh saat GUI terbuka
     @Override
     public void open() {
         super.open();
         startRefreshTask();
     }
     
-    // Fitur LIVE UPDATE setiap 1 detik
     private void startRefreshTask() {
         if (refreshTaskId != -1) return;
         refreshTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            // Pastikan player masih membuka GUI ini
             if (player.getOpenInventory().getTopInventory().equals(inventory)) {
-                
-                // Ambil ulang data generator terbaru (jika ada yang diletakkan/dihancurkan/rusak di background)
                 this.allPlayerGens = plugin.getGeneratorManager().getAllGenerators().stream()
                         .filter(g -> g.getOwner().equals(player.getUniqueId()))
                         .collect(Collectors.toList());
 
-                // Kalkulasi ulang Daya Gardu (bahan bakar yang berkurang karena drop item)
                 globalGrid.calculateGridStatus(plugin);
-                
                 FileConfiguration guiCfg = plugin.getConfigManager().getGuiConfig();
                 
-                // Update elemen-elemen dinamis secara halus (tanpa menghapus/clear seluruh isi GUI)
                 renderGeneratorPage(guiCfg);
                 renderGlobalGarduSlots(guiCfg);
                 renderStatistics(guiCfg);
             } else {
                 stopRefreshTask();
             }
-        }, 20L, 20L); // 20 Ticks = 1 Detik
+        }, 20L, 20L);
     }
     
     private void stopRefreshTask() {
@@ -109,12 +102,10 @@ public class GeneratorManagementGUI extends BaseGUI {
     
     private void showManagementMenu() {
         inventory.clear(); 
+        actions.clear();
         FileConfiguration guiCfg = plugin.getConfigManager().getGuiConfig();
         
-        // 1. Render Sistem Priority (Background, Tombol, Filler)
         renderPriorityConfigItems(guiCfg);
-        
-        // 2. Render Core System
         renderGeneratorPage(guiCfg);
         renderGlobalGarduSlots(guiCfg);
         renderStatistics(guiCfg);
@@ -123,7 +114,7 @@ public class GeneratorManagementGUI extends BaseGUI {
     @Override
     public void onInventoryClose(InventoryCloseEvent event) {
         super.onInventoryClose(event);
-        stopRefreshTask(); // Matikan task saat GUI ditutup
+        stopRefreshTask();
         
         if (globalGrid.isOverCapacity()) {
             Player p = (Player) event.getPlayer();
@@ -139,6 +130,7 @@ public class GeneratorManagementGUI extends BaseGUI {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void renderPriorityConfigItems(FileConfiguration guiCfg) {
         ConfigurationSection itemsSec = guiCfg.getConfigurationSection("management.items");
         if (itemsSec == null) return;
@@ -146,6 +138,8 @@ public class GeneratorManagementGUI extends BaseGUI {
         List<ConfigItem> cItems = new ArrayList<>();
         
         for (String key : itemsSec.getKeys(false)) {
+            if (key.startsWith("stat-")) continue; 
+            
             ConfigurationSection itemCfg = itemsSec.getConfigurationSection(key);
             if (itemCfg == null) continue;
             
@@ -178,23 +172,35 @@ public class GeneratorManagementGUI extends BaseGUI {
                 if (ci.key.equalsIgnoreCase("close-btn")) {
                     setAction(slot, (p, e) -> { e.setCancelled(true); p.closeInventory(); });
                 } 
-                else if (ci.key.equalsIgnoreCase("next-btn")) {
+                else if (ci.key.equalsIgnoreCase("next-btn") || ci.key.equalsIgnoreCase("next-page")) {
                     if (currentPage < totalPages - 1) {
-                        ItemMeta meta = ci.itemStack.getItemMeta();
+                        ItemStack displayItem = ci.itemStack.clone();
+                        ItemMeta meta = displayItem.getItemMeta();
                         meta.setDisplayName(meta.getDisplayName().replace("{page}", String.valueOf(currentPage + 2)));
-                        ci.itemStack.setItemMeta(meta);
-                        inventory.setItem(slot, ci.itemStack);
+                        if (meta.hasLore()) {
+                            List<String> newLore = new ArrayList<>();
+                            for (String l : meta.getLore()) newLore.add(l.replace("{page}", String.valueOf(currentPage + 2)));
+                            meta.setLore(newLore);
+                        }
+                        displayItem.setItemMeta(meta);
+                        inventory.setItem(slot, displayItem);
                         setAction(slot, (p, e) -> { e.setCancelled(true); currentPage++; showManagementMenu(); });
                     } else {
                         inventory.setItem(slot, getFallbackFiller(guiCfg));
                     }
                 } 
-                else if (ci.key.equalsIgnoreCase("back-btn")) {
+                else if (ci.key.equalsIgnoreCase("back-btn") || ci.key.equalsIgnoreCase("prev-page")) {
                     if (currentPage > 0) {
-                        ItemMeta meta = ci.itemStack.getItemMeta();
+                        ItemStack displayItem = ci.itemStack.clone();
+                        ItemMeta meta = displayItem.getItemMeta();
                         meta.setDisplayName(meta.getDisplayName().replace("{page}", String.valueOf(currentPage)));
-                        ci.itemStack.setItemMeta(meta);
-                        inventory.setItem(slot, ci.itemStack);
+                        if (meta.hasLore()) {
+                            List<String> newLore = new ArrayList<>();
+                            for (String l : meta.getLore()) newLore.add(l.replace("{page}", String.valueOf(currentPage)));
+                            meta.setLore(newLore);
+                        }
+                        displayItem.setItemMeta(meta);
+                        inventory.setItem(slot, displayItem);
                         setAction(slot, (p, e) -> { e.setCancelled(true); currentPage--; showManagementMenu(); });
                     } else {
                         inventory.setItem(slot, getFallbackFiller(guiCfg));
@@ -243,7 +249,6 @@ public class GeneratorManagementGUI extends BaseGUI {
             slotIndex++;
         }
         
-        // Membersihkan slot kosong (Jika ada generator yang dihancurkan saat menu terbuka)
         while (slotIndex < genSlots.size()) {
             int conceptualSlot = genSlots.get(slotIndex);
             if (conceptualSlot < inventory.getSize()) {
@@ -254,6 +259,7 @@ public class GeneratorManagementGUI extends BaseGUI {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void renderGlobalGarduSlots(FileConfiguration guiCfg) {
         List<Integer> fuelSlots = guiCfg.getIntegerList("management.fuel-slots");
         if (fuelSlots.isEmpty() || fuelSlots.size() != 5) {
@@ -277,10 +283,11 @@ public class GeneratorManagementGUI extends BaseGUI {
             } else {
                 ItemStack rawFuelItem = globalGrid.getFuel(fuelIndex);
                 if (rawFuelItem == null || rawFuelItem.getType() == Material.AIR) {
-                    inventory.setItem(conceptualSlot, createItem(Material.YELLOW_STAINED_GLASS_PANE, "&e&lSLOT FUEL GLOBAL " + (fuelIndex + 1), "&7Drag & Drop Fuel Kesini!"));
+                    inventory.setItem(conceptualSlot, createItem(Material.YELLOW_STAINED_GLASS_PANE, "&e&lSLOT FUEL " + (fuelIndex + 1), "&7Drag & Drop Fuel Kesini!"));
                 } else {
                     ItemStack displayFuel = rawFuelItem.clone();
                     ItemMeta meta = displayFuel.getItemMeta();
+                    @SuppressWarnings("deprecation")
                     List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
                     
                     lore.add(plugin.getConfigManager().colorize("&8&m------------------"));
@@ -311,38 +318,32 @@ public class GeneratorManagementGUI extends BaseGUI {
                     
                     if (cursor != null && cursor.getType() != Material.AIR) {
                         if (plugin.getFuelManager().isFuel(cursor.getType())) {
+                            ItemStack newFuel = cursor.clone();
                             if (isFiller) {
-                                inventory.setItem(conceptualSlot, cursor.clone());
                                 p.setItemOnCursor(null);
                             } else {
-                                inventory.setItem(conceptualSlot, cursor.clone());
                                 p.setItemOnCursor(rawFuelItem.clone()); 
                             }
-                            // Muluskan drag n drop tanpa clear() layar sepenuhnya
-                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                globalGrid.setFuel(fuelIndex, inventory.getItem(conceptualSlot));
-                                globalGrid.calculateGridStatus(plugin);
-                                renderGlobalGarduSlots(guiCfg);
-                                renderStatistics(guiCfg);
-                            }, 1L);
-                        } else {
-                            p.sendMessage(plugin.getConfigManager().colorize("&cItu bukan bahan bakar Gardu Induk yang valid!"));
-                        }
-                    } else if (!isFiller && rawFuelItem != null && rawFuelItem.getType() != Material.AIR) {
-                        p.setItemOnCursor(rawFuelItem.clone());
-                        inventory.setItem(conceptualSlot, createItem(Material.YELLOW_STAINED_GLASS_PANE, "&e&lSLOT FUEL GLOBAL " + (fuelIndex + 1), "&7Drag & Drop Fuel Kesini!"));
-                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                            globalGrid.setFuel(fuelIndex, null);
+                            globalGrid.setFuel(fuelIndex, newFuel);
                             globalGrid.calculateGridStatus(plugin);
                             renderGlobalGarduSlots(guiCfg);
                             renderStatistics(guiCfg);
-                        }, 1L);
+                        } else {
+                            p.sendMessage(plugin.getConfigManager().colorize("&cItu bukan bahan bakar yang valid!"));
+                        }
+                    } else if (!isFiller && rawFuelItem != null && rawFuelItem.getType() != Material.AIR) {
+                        p.setItemOnCursor(rawFuelItem.clone());
+                        globalGrid.setFuel(fuelIndex, null);
+                        globalGrid.calculateGridStatus(plugin);
+                        renderGlobalGarduSlots(guiCfg);
+                        renderStatistics(guiCfg);
                     }
                 });
             }
         }
     }
     
+    @SuppressWarnings("deprecation")
     private ItemStack buildGeneratorDisplayItem(Generator gen, FileConfiguration guiCfg) {
         ConfigurationSection cfg = plugin.getConfigManager().getGeneratorsConfig().getConfigurationSection(gen.getType());
         Material mat = cfg != null ? Material.matchMaterial(cfg.getString("item.material", "STONE")) : Material.STONE;
@@ -380,32 +381,36 @@ public class GeneratorManagementGUI extends BaseGUI {
     private void renderStatistics(FileConfiguration guiCfg) {
         int maxJoule = globalGrid.getMaxJoulesLimitByRank(plugin);
         int totalRequired = getTotalRequiredJoules();
-        int currentJoules = globalGrid.getCurrentJoules(); // Ini akan otomatis 0 jika over-capacity
+        int currentJoules = globalGrid.getTotalDisplayedJoules(plugin); 
         int gensCount = allPlayerGens.size();
-        double speedMulti = plugin.getConfig().getDouble("events.speed-multiplier", 1.0);
         
-        String gridStatus;
-        Material gridMat;
+        long corruptedCount = allPlayerGens.stream().filter(Generator::isCorrupted).count();
+        double repairCost = 0.0;
+        for (Generator gen : allPlayerGens) {
+            if (gen.isCorrupted()) {
+                repairCost += plugin.getConfigManager().getGeneratorsConfig().getDouble(gen.getType() + ".corrupted.cost", 50.0);
+            }
+        }
+        int extraSlots = plugin.getConfigManager().getPlayersConfig().getInt(player.getUniqueId().toString() + ".extra-slots", 0);
 
-        // PERBAIKAN: Deteksi status yang lebih realistis
+        String gridStateKey;
         if (globalGrid.isOverCapacity()) {
-            gridStatus = "&c&lOVERLOAD! &c(Mesin Mati)";
-            gridMat = Material.REDSTONE_BLOCK;
+            gridStateKey = "stat-grid-overload";
         } else if (currentJoules <= 0) {
-            gridStatus = "&c&lOFFLINE! &7(Bahan Bakar Kosong)";
-            gridMat = Material.REDSTONE_BLOCK;
+            gridStateKey = "stat-grid-offline";
         } else {
-            gridStatus = "&a&lONLINE! &7(Beroperasi Normal)";
-            gridMat = Material.EMERALD_BLOCK;
+            gridStateKey = "stat-grid-online";
         }
 
-        int statusSlot = guiCfg.getInt("management.items.stat-status.slot", 47);
+        int statusSlot = guiCfg.getInt("management.items." + gridStateKey + ".slot", 47);
         if (statusSlot < inventory.getSize()) {
-            String name = guiCfg.getString("management.items.stat-status.name", "&6STATUS GARDU INDUK");
+            String name = guiCfg.getString("management.items." + gridStateKey + ".name", "&6STATUS GARDU");
+            Material gridMat = Material.matchMaterial(guiCfg.getString("management.items." + gridStateKey + ".material", "BEDROCK"));
+            if (gridMat == null) gridMat = Material.BEDROCK;
+            
             List<String> lore = new ArrayList<>();
-            for (String line : guiCfg.getStringList("management.items.stat-status.lore")) {
-                lore.add(line.replace("{grid_status}", gridStatus)
-                             .replace("{current}", String.valueOf(currentJoules))
+            for (String line : guiCfg.getStringList("management.items." + gridStateKey + ".lore")) {
+                lore.add(line.replace("{current}", String.valueOf(currentJoules))
                              .replace("{max}", String.valueOf(maxJoule))
                              .replace("{required}", String.valueOf(totalRequired)));
             }
@@ -415,34 +420,67 @@ public class GeneratorManagementGUI extends BaseGUI {
         int assetSlot = guiCfg.getInt("management.items.stat-asset.slot", 48);
         if (assetSlot < inventory.getSize()) {
             String name = guiCfg.getString("management.items.stat-asset.name", "&6TOTAL ASSET MESIN");
+            Material m = Material.matchMaterial(guiCfg.getString("management.items.stat-asset.material", "COMPARATOR"));
             List<String> lore = new ArrayList<>();
             for (String line : guiCfg.getStringList("management.items.stat-asset.lore")) {
-                lore.add(line.replace("{count}", String.valueOf(gensCount)));
+                lore.add(line.replace("{count}", String.valueOf(gensCount))
+                             .replace("{max_gens}", String.valueOf(plugin.getGeneratorManager().getMaxGenerators(player)))
+                             .replace("{corrupted_count}", String.valueOf(corruptedCount))
+                             .replace("{repair_cost}", String.valueOf(repairCost)));
             }
-            inventory.setItem(assetSlot, createItem(Material.REDSTONE_LAMP, name, lore.toArray(new String[0])));
+            inventory.setItem(assetSlot, createItem(m != null ? m : Material.COMPARATOR, name, lore.toArray(new String[0])));
         }
         
+        // PERBAIKAN: Lore Event yang Dinamis Tanpa Hardcode {multiplier}
         int eventSlot = guiCfg.getInt("management.items.stat-event.slot", 50);
         if (eventSlot < inventory.getSize()) {
             String name = guiCfg.getString("management.items.stat-event.name", "&6EVENT MULTIPLIER");
+            Material m = Material.matchMaterial(guiCfg.getString("management.items.stat-event.material", "BEACON"));
+            
+            String activeEventTitle = plugin.getEventManager().hasActiveEvent() 
+                ? plugin.getEventManager().getActiveEvent().getDisplayName() 
+                : "&7Tidak Ada Event Aktif";
+            
             List<String> lore = new ArrayList<>();
             for (String line : guiCfg.getStringList("management.items.stat-event.lore")) {
-                lore.add(line.replace("{multiplier}", String.valueOf(speedMulti)));
+                if (line.contains("{multiplier}")) {
+                    if (!plugin.getEventManager().hasActiveEvent()) {
+                        lore.add(plugin.getConfigManager().colorize("&7Tidak ada bonus aktif."));
+                    } else {
+                        String eType = plugin.getEventManager().getActiveEvent().getType();
+                        if (eType.equals("drop_multiplier")) {
+                            lore.add(plugin.getConfigManager().colorize("&7Bonus Drop: &ex" + plugin.getGeneratorManager().getDropMultiplier() + " Item"));
+                        } else if (eType.equals("generator_speed")) {
+                            lore.add(plugin.getConfigManager().colorize("&7Bonus Speed: &e+" + plugin.getGeneratorManager().getSpeedReduction() + "% Lebih Cepat"));
+                        } else if (eType.equals("sell_multiplier")) {
+                            lore.add(plugin.getConfigManager().colorize("&7Bonus Jual: &ex" + plugin.getSellManager().getEventMultiplier() + " Harga"));
+                        } else if (eType.equals("generator_upgrade")) {
+                            lore.add(plugin.getConfigManager().colorize("&7Bonus Tier: &e+" + plugin.getGeneratorManager().getTierBoost() + " Level Mesin"));
+                        } else if (eType.equals("mixed_up")) {
+                            lore.add(plugin.getConfigManager().colorize("&7Bonus Item: &eAcak dari semua jenis!"));
+                        }
+                    }
+                } else {
+                    lore.add(plugin.getConfigManager().colorize(line.replace("{active_event}", activeEventTitle)));
+                }
             }
-            inventory.setItem(eventSlot, createItem(Material.HOPPER, name, lore.toArray(new String[0])));
+            inventory.setItem(eventSlot, createItem(m != null ? m : Material.BEACON, name, lore.toArray(new String[0])));
         }
         
         int limitSlot = guiCfg.getInt("management.items.stat-limit.slot", 51);
         if (limitSlot < inventory.getSize()) {
             String name = guiCfg.getString("management.items.stat-limit.name", "&6LIMIT KAPASITAS GARDU");
+            Material m = Material.matchMaterial(guiCfg.getString("management.items.stat-limit.material", "EXPERIENCE_BOTTLE"));
             List<String> lore = new ArrayList<>();
             for (String line : guiCfg.getStringList("management.items.stat-limit.lore")) {
-                lore.add(line.replace("{max}", String.valueOf(maxJoule)));
+                lore.add(line.replace("{max}", String.valueOf(maxJoule))
+                             .replace("{extra_slots}", String.valueOf(extraSlots)));
             }
-            inventory.setItem(limitSlot, createItem(Material.GOLD_BLOCK, name, lore.toArray(new String[0])));
+            inventory.setItem(limitSlot, createItem(m != null ? m : Material.EXPERIENCE_BOTTLE, name, lore.toArray(new String[0])));
         }
     }
     
+    @SuppressWarnings("deprecation")
     private ItemStack createItem(Material material, String name, String... lore) {
         if (material == null) material = Material.STONE;
         ItemStack item = new ItemStack(material);

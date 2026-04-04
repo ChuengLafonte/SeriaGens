@@ -1,16 +1,17 @@
 package id.seria.gens.managers;
 
-import id.seria.gens.SeriaGens;
-import id.seria.gens.models.PlayerGlobalGrid;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import id.seria.gens.SeriaGens;
+import id.seria.gens.models.PlayerGlobalGrid;
 
 public class FuelManager {
     
@@ -56,11 +57,15 @@ public class FuelManager {
     }
 
     // --- LOGIKA GARDU INDUK GLOBAL ---
+    
     public PlayerGlobalGrid getGlobalGrid(UUID playerUUID) {
         if (!activeGrids.containsKey(playerUUID)) {
             // Load dari database jika belum ada di cache
             DatabaseManager.GlobalFuelData data = plugin.getDatabaseManager().loadGlobalFuelSync(playerUUID);
+            
+            // PERBAIKAN 1: Format constructor baru tanpa variabel 'plugin'
             PlayerGlobalGrid grid = new PlayerGlobalGrid(playerUUID, data.joules, data.fuelItems);
+            
             activeGrids.put(playerUUID, grid);
         }
         return activeGrids.get(playerUUID);
@@ -68,6 +73,7 @@ public class FuelManager {
 
     public void saveAllGrids() {
         for (PlayerGlobalGrid grid : activeGrids.values()) {
+            // PERBAIKAN 2: Menggunakan getPlayerUUID() yang sudah dioptimasi
             plugin.getDatabaseManager().saveGlobalFuelSync(grid.getPlayerUUID(), grid.getCurrentJoules(), grid.getAllFuels());
         }
     }
@@ -79,5 +85,16 @@ public class FuelManager {
             this.joulesPerItem = joulesPerItem;
             this.burnTime = burnTime;
         }
+    }
+
+    public int getFuelValue(org.bukkit.inventory.ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return 0;
+        
+        // Membaca dari Cache memori (Sangat Ringan & Anti-Lag)
+        if (validFuels.containsKey(item.getType())) {
+            return validFuels.get(item.getType()).joulesPerItem;
+        }
+        
+        return 0; 
     }
 }
