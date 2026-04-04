@@ -2,11 +2,11 @@ package id.seria.gens.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 public class ItemSerializer {
     
@@ -20,7 +20,9 @@ public class ItemSerializer {
                 dataOutput.writeObject(item);
             }
             dataOutput.close();
-            return Base64Coder.encodeLines(outputStream.toByteArray());
+            
+            // Menggunakan Base64 bawaan Java (Lebih Cepat & Aman di MC 1.21+)
+            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
         } catch (Exception e) {
             throw new IllegalStateException("Unable to save item stacks.", e);
         }
@@ -29,7 +31,9 @@ public class ItemSerializer {
     public static ItemStack[] itemStackArrayFromBase64(String data) {
         if (data == null || data.isEmpty()) return new ItemStack[5]; // Default 5 slot
         try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
+            // Menggunakan Base64 bawaan Java
+            byte[] decodedData = Base64.getDecoder().decode(data);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedData);
             BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
             
             ItemStack[] items = new ItemStack[dataInput.readInt()];
@@ -39,9 +43,8 @@ public class ItemSerializer {
             dataInput.close();
             return items;
         } catch (Exception e) {
-            System.out.println("[SeriaGens] ⚠ GAGAL MEMUAT DATA FUEL BASE64: " + e.getMessage());
-            e.printStackTrace();
-            return new ItemStack[5]; // Kembalikan kosong jika gagal membaca
+            // Mengembalikan inventory fuel kosong (aman) jika data tidak bisa dibaca
+            return new ItemStack[5]; 
         }
     }
 }
