@@ -11,7 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -169,7 +171,6 @@ public class DatabaseManager {
         return CompletableFuture.runAsync(() -> saveGeneratorSync(generator));
     }
     
-    // SYNCHRONIZED: Mencegah error SQLITE_BUSY (Locked) saat save massal & save satuan bertabrakan
     public synchronized void saveGeneratorSync(Generator generator) {
         if (isClosing || connection == null) return;
         
@@ -178,22 +179,54 @@ public class DatabaseManager {
             : "INSERT OR REPLACE INTO generators (id, owner, world, x, y, z, type, last_drop, placed_at, corrupted, last_corruption_check) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            Location loc = generator.getLocation();
-            stmt.setString(1, generator.getId());
-            stmt.setString(2, generator.getOwner().toString());
-            stmt.setString(3, generator.getWorldName()); // Memanggil nama world dengan aman
-            stmt.setInt(4, loc != null ? loc.getBlockX() : 0);
-            stmt.setInt(5, loc != null ? loc.getBlockY() : 0);
-            stmt.setInt(6, loc != null ? loc.getBlockZ() : 0);
-            stmt.setString(7, generator.getType());
-            stmt.setLong(8, generator.getLastDrop());
-            stmt.setLong(9, generator.getPlacedAt());
-            stmt.setBoolean(10, generator.isCorrupted());
-            stmt.setLong(11, generator.getLastCorruptionCheck());
+            prepareGeneratorStatement(stmt, generator);
             stmt.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to save generator: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Menyimpan banyak generator sekaligus dalam satu transaksi (Sangat Cepat/Ringan).
+     */
+    public synchronized void saveGeneratorsBatchSync(Collection<Generator> generators) {
+        if (isClosing || connection == null || generators.isEmpty()) return;
+        
+        String sql = type.equalsIgnoreCase("MYSQL") 
+            ? "REPLACE INTO generators (id, owner, world, x, y, z, type, last_drop, placed_at, corrupted, last_corruption_check) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            : "INSERT OR REPLACE INTO generators (id, owner, world, x, y, z, type, last_drop, placed_at, corrupted, last_corruption_check) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            connection.setAutoCommit(false); // Memulai transaksi
+            
+            for (Generator generator : generators) {
+                prepareGeneratorStatement(stmt, generator);
+                stmt.addBatch();
+            }
+            
+            stmt.executeBatch();
+            connection.commit();
+            connection.setAutoCommit(true); // Kembali ke mode normal
+            
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to save generators batch: " + e.getMessage());
+            try { connection.rollback(); connection.setAutoCommit(true); } catch (SQLException ignored) {}
+        }
+    }
+
+    private void prepareGeneratorStatement(PreparedStatement stmt, Generator generator) throws SQLException {
+        Location loc = generator.getLocation();
+        stmt.setString(1, generator.getId());
+        stmt.setString(2, generator.getOwner().toString());
+        stmt.setString(3, generator.getWorldName());
+        stmt.setInt(4, loc != null ? loc.getBlockX() : 0);
+        stmt.setInt(5, loc != null ? loc.getBlockY() : 0);
+        stmt.setInt(6, loc != null ? loc.getBlockZ() : 0);
+        stmt.setString(7, generator.getType());
+        stmt.setLong(8, generator.getLastDrop());
+        stmt.setLong(9, generator.getPlacedAt());
+        stmt.setBoolean(10, generator.isCorrupted());
+        stmt.setLong(11, generator.getLastCorruptionCheck());
     }
     
     public synchronized List<Generator> loadAllGenerators() {
@@ -265,6 +298,33 @@ public class DatabaseManager {
             stmt.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to save global fuel for " + player + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Menyimpan data fuel semua player dalam satu batch.
+     */
+    public synchronized void saveAllGlobalFuelsBatchSync(Map<UUID, Object[]> fuelData) {
+        if (isClosing || connection == null || fuelData.isEmpty()) return;
+        
+        String sql = type.equalsIgnoreCase("MYSQL") 
+            ? "REPLACE INTO player_global_fuel (player_uuid, current_joules, fuel_data) VALUES (?, ?, ?)"
+            : "INSERT OR REPLACE INTO player_global_fuel (player_uuid, current_joules, fuel_data) VALUES (?, ?, ?)";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            connection.setAutoCommit(false);
+            for (Map.Entry<UUID, Object[]> entry : fuelData.entrySet()) {
+                stmt.setString(1, entry.getKey().toString());
+                stmt.setInt(2, (int) entry.getValue()[0]);
+                stmt.setString(3, (String) entry.getValue()[1]);
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+            connection.commit();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to save fuels batch: " + e.getMessage());
+            try { connection.rollback(); connection.setAutoCommit(true); } catch (SQLException ignored) {}
         }
     }
 

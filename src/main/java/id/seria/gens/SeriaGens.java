@@ -127,11 +127,15 @@ public final class SeriaGens extends JavaPlugin {
     }
     
     private void startTasks() {
-        getServer().getScheduler().runTaskTimer(this, () -> generatorManager.tickGenerators(), 20L, 20L);
+        // Optimasi: Jalankan SETIAP TICK (1L) agar beban Generator disebar (Distributed Ticking)
+        getServer().getScheduler().runTaskTimer(this, () -> generatorManager.tickGenerators(), 1L, 1L);
+        
+        int saveInterval = getConfig().getInt("database.auto-save-interval", 300) * 20;
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            generatorManager.saveAllSync(); // Gunakan Sync dalam Async Thread agar aman
-            if (fuelManager != null) fuelManager.saveAllGrids(); // FUEL SEKARANG IKUT AUTO-SAVE
-        }, 6000L, 6000L); // Auto-save berjalan setiap 5 menit (6000 ticks)
+            generatorManager.saveAllSync(); // Menggunakan Batch Saving yang sangat ringan
+            if (fuelManager != null) fuelManager.saveAllGrids(); 
+        }, saveInterval, saveInterval); 
+        
         getServer().getScheduler().runTaskTimer(this, () -> generatorManager.restoreAllBlocks(), 6000L, 6000L);
     }
     

@@ -5,13 +5,14 @@
 
 # MySQL Database Configuration
 database:
-  type: MYSQL  # MYSQL or SQLITE
+  type: SQLITE  # MYSQL or SQLITE
+  auto-save-interval: 300 # dalam detik (5 menit)
   mysql:
-    host: 185.207.166.148
-    port: 1025
-    database: s1790_gens
-    user: u1790_Lnrcd25JNV
-    password: O^ue2gT^vlvAT3^8mbvyxtu+
+    host: localhost
+    port: 3306
+    database: seriagens
+    user: root
+    password: ""
     useSSL: false
 
 # Generator Settings

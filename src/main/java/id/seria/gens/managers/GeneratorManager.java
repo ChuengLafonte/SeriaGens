@@ -227,43 +227,71 @@ public class GeneratorManager {
         return true;
     }
     
+    /**
+     * Mengelompokkan generator ke dalam "bucket" berdasarkan lokasinya 
+     * untuk menyebar beban pengecekan (Distributed Ticking).
+     */
+    private int currentTickOffset = 0;
+    private final int TICK_BUCKETS = 20; // Sebar beban dalam 20 tick (1 detik)
+
     public void tickGenerators() {
-        for (Generator gen : new ArrayList<>(generators.values())) {
-            org.bukkit.World world = gen.getLocation().getWorld();
-            if (world == null) continue;
-            if (!world.isChunkLoaded(gen.getLocation().getBlockX() >> 4, gen.getLocation().getBlockZ() >> 4)) continue;
-            
-            if (gen.isCorrupted()) continue; 
+        if (generators.isEmpty()) return;
+        
+        List<Generator> allGens = new ArrayList<>(generators.values());
+        int size = allGens.size();
+        int perBucket = Math.max(1, size / TICK_BUCKETS);
+        
+        int start = currentTickOffset * perBucket;
+        int end = (currentTickOffset == TICK_BUCKETS - 1) ? size : (currentTickOffset + 1) * perBucket;
+        
+        for (int i = start; i < end && i < size; i++) {
+            Generator gen = allGens.get(i);
+            processGeneratorTick(gen);
+        }
+        
+        currentTickOffset = (currentTickOffset + 1) % TICK_BUCKETS;
+    }
+    
+    private void processGeneratorTick(Generator gen) {
+        Location loc = gen.getLocation();
+        if (loc == null) return;
+        
+        org.bukkit.World world = loc.getWorld();
+        if (world == null) return;
+        if (!world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) return;
+        
+        if (gen.isCorrupted()) return; 
 
-            UUID ownerUUID = gen.getOwner();
-            PlayerGlobalGrid grid = plugin.getFuelManager().getGlobalGrid(ownerUUID);
-            if (grid == null || grid.isOverCapacity()) continue;
+        UUID ownerUUID = gen.getOwner();
+        PlayerGlobalGrid grid = plugin.getFuelManager().getGlobalGrid(ownerUUID);
+        if (grid == null || grid.isOverCapacity()) return;
 
-            String type = gen.getType();
-            int interval = plugin.getConfigManager().getGeneratorInterval(type);
-            int jouleCost = plugin.getConfigManager().getGeneratorsConfig().getInt(type + ".joule-cost-per-drop", 1);
+        String type = gen.getType();
+        int interval = plugin.getConfigManager().getGeneratorInterval(type);
+        int jouleCost = plugin.getConfigManager().getGeneratorsConfig().getInt(type + ".joule-cost-per-drop", 1);
 
-            if (!grid.hasPower(plugin, jouleCost)) continue;
+        if (!grid.hasPower(plugin, jouleCost)) return;
 
-            boolean onlineOnly = plugin.getConfig().getBoolean("generators.online-only", true);
-            if (onlineOnly) {
-                org.bukkit.entity.Player owner = org.bukkit.Bukkit.getPlayer(ownerUUID);
-                if (owner == null || !owner.isOnline()) continue;
-            }
-            
-            // PERBAIKAN MATEMATIKA SPEED EVENT: (Misal interval 50, speedReduction 50.0%) -> 50 * (1 - 0.5) = 25
-            int adjustedInterval = interval;
-            if (speedReductionPercent > 0) {
-                adjustedInterval = (int) (interval * (1.0 - (speedReductionPercent / 100.0)));
-            }
-            if (adjustedInterval < 1) adjustedInterval = 1;
-            
-            if (gen.canDrop(adjustedInterval)) {
-                dropItems(gen);
-                grid.consumeGlobally(plugin, jouleCost); 
-                gen.markDropped();
-                plugin.getDatabaseManager().saveGenerator(gen);
-            }
+        boolean onlineOnly = plugin.getConfig().getBoolean("generators.online-only", true);
+        if (onlineOnly) {
+            org.bukkit.entity.Player owner = org.bukkit.Bukkit.getPlayer(ownerUUID);
+            if (owner == null || !owner.isOnline()) return;
+        }
+        
+        int adjustedInterval = interval;
+        if (speedReductionPercent > 0) {
+            adjustedInterval = (int) (interval * (1.0 - (speedReductionPercent / 100.0)));
+        }
+        if (adjustedInterval < 1) adjustedInterval = 1;
+        
+        // Cek apakah sudah waktunya drop
+        // Karena tick disebar, kita hitung selisih waktu atau tick asli server
+        if (gen.canDrop(adjustedInterval)) {
+            dropItems(gen);
+            grid.consumeGlobally(plugin, jouleCost); 
+            gen.markDropped();
+            // OPTIMASI: JANGAN SAVE KE DB DI SINI! 
+            // Biarkan Auto-Save (Batch) yang meraba-raba data ke disk.
         }
     }
  
@@ -393,10 +421,10 @@ public class GeneratorManager {
     }
     
     public void saveAll() {
-        for (Generator gen : generators.values()) plugin.getDatabaseManager().saveGenerator(gen);
+        plugin.getDatabaseManager().saveGeneratorsBatchSync(generators.values());
     }
     public void saveAllSync() {
-        for (Generator gen : generators.values()) plugin.getDatabaseManager().saveGeneratorSync(gen);
+        plugin.getDatabaseManager().saveGeneratorsBatchSync(generators.values());
     }
 
     public void setDropMultiplier(int multiplier) { this.dropMultiplier = multiplier; }
