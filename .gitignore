@@ -1,0 +1,18 @@
+target/
+*.class
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Build artifacts
+*.jar
+*.war
+*dependency-reduced-pom.xml
+
+# Log files
+*.log
+
+# Windows thumbnail cache
+Thumbs.db
