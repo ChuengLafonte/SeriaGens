@@ -107,6 +107,9 @@ public class SellManager {
     public double getSellValue(Player player, ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return 0.0;
         
+        // RESTRICTION: Only sell generator results
+        if (!isGeneratorItem(item)) return 0.0;
+        
         // 1. Cek NBT Tag (Metode Baru, Kecepatan & Akurasi 100% untuk Generator)
         if (item.hasItemMeta()) {
             org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "seriagens_value");
@@ -123,13 +126,32 @@ public class SellManager {
             }
         }
         
-        // 3. Integrasi ShopGUI+ (Menjual item vanilla/biasa)
+        // 3. Integrasi ShopGUI+ (Fallback untuk item generator yang tidak punya harga di config)
         if (shopGUIPlus != null && shopGUIPlus.isSellable(player, item)) {
-            // Kita kalikan juga dengan eventMultiplier jika ada event global SeriaGens!
             return shopGUIPlus.getSellPrice(player, item) * eventMultiplier;
         }
         
         return 0.0;
+    }
+    
+    /**
+     * Memeriksa apakah suatu item adalah produk dari generator SeriaGens.
+     */
+    public boolean isGeneratorItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        
+        // Cek NBT Tag khusus
+        org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "seriagens_value");
+        if (item.getItemMeta().getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.DOUBLE)) {
+            return true;
+        }
+        
+        // Cek kecocokan dengan konfigurasi (untuk item tanpa NBT)
+        for (CustomItemData data : customItems) {
+            if (data.matches(item)) return true;
+        }
+        
+        return false;
     }
     
     // Sesuaikan isSellable dengan parameter baru

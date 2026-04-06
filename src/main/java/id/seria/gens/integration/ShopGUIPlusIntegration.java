@@ -47,7 +47,9 @@ public class ShopGUIPlusIntegration {
                                    .invoke(null, player, item);
             
             if (price != null && (double) price > 0) {
-                return (double) price;
+                // ShopGUIPlus returns the price for the entire ItemStack (including quantity).
+                // We divide by item amount to get the price per single item.
+                return (double) price / item.getAmount();
             }
             return 0.0;
         } catch (Exception e) {
