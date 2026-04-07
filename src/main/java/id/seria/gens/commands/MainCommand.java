@@ -111,9 +111,6 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         // Eksekusi perusakan paksa
         plugin.getCorruptionManager().corruptGenerator(gen);
         
-        // Memaksa FancyHolograms untuk memunculkan teks peringatan
-        plugin.getHologramIntegration().showCorruptionHologram(gen);
-        
         player.sendMessage(plugin.getConfigManager().colorize("&a&l[!] &aGenerator berhasil dirusak secara paksa untuk keperluan testing!"));
         
         // Memberikan suara efek ledakan kecil/anvil agar terasa nyata saat dites
@@ -221,7 +218,6 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         plugin.getConfigManager().loadConfigs();
         plugin.getSellManager().reload();
         plugin.getEventManager().reload();
-        plugin.getHologramIntegration().reload();
         
         sender.sendMessage(plugin.getConfigManager().getMessage("plugin-reloaded"));
         return true;

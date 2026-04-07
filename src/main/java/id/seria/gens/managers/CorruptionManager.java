@@ -41,17 +41,19 @@ public class CorruptionManager {
             return;
         }
         
-        List<Generator> allGenerators = new ArrayList<>(plugin.getGeneratorManager().getAllGenerators());
+        java.util.Collection<Generator> allGenerators = plugin.getGeneratorManager().getAllGenerators();
         if (allGenerators.isEmpty()) return;
         
+        long interval = plugin.getConfig().getLong("corruption.interval", 180);
         List<Generator> eligibleGenerators = new ArrayList<>();
+        
         for (Generator gen : allGenerators) {
+            if (gen.isCorrupted()) continue;
+            
             Player owner = Bukkit.getPlayer(gen.getOwner());
             if (owner != null && owner.isOnline()) {
-                if (!gen.isCorrupted()) {
-                    if (gen.shouldCheckCorruption(plugin.getConfig().getLong("corruption.interval", 180))) {
-                        eligibleGenerators.add(gen);
-                    }
+                if (gen.shouldCheckCorruption(interval)) {
+                    eligibleGenerators.add(gen);
                 }
             }
         }
@@ -78,8 +80,6 @@ public class CorruptionManager {
                 gen.setCorrupted(true);
                 plugin.getDatabaseManager().saveGenerator(gen);
                 corruptedCount++;
-                
-                plugin.getHologramIntegration().showCorruptionHologram(gen);
                 
                 Player owner = Bukkit.getPlayer(gen.getOwner());
                 if (owner != null && owner.isOnline()) {
@@ -158,7 +158,6 @@ public class CorruptionManager {
         
         gen.setCorrupted(false);
         plugin.getDatabaseManager().saveGenerator(gen);
-        plugin.getHologramIntegration().removeCorruptionHologram(gen);
         
         String msg = plugin.getConfigManager().getMessage("generator-repaired")
             .replace("{cost}", String.format("%.2f", cost));

@@ -5,23 +5,25 @@ import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
 
 public class ItemSerializer {
     
     public static String itemStackArrayToBase64(ItemStack[] items) throws IllegalStateException {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
+            java.io.DataOutputStream dataOutput = new java.io.DataOutputStream(outputStream);
             
             dataOutput.writeInt(items.length);
             for (ItemStack item : items) {
-                dataOutput.writeObject(item);
+                if (item == null || item.getType().isAir()) {
+                    dataOutput.writeInt(-1);
+                } else {
+                    byte[] bytes = item.serializeAsBytes();
+                    dataOutput.writeInt(bytes.length);
+                    dataOutput.write(bytes);
+                }
             }
             dataOutput.close();
-            
-            // Menggunakan Base64 bawaan Java (Lebih Cepat & Aman di MC 1.21+)
             return Base64.getEncoder().encodeToString(outputStream.toByteArray());
         } catch (Exception e) {
             throw new IllegalStateException("Unable to save item stacks.", e);
@@ -29,21 +31,27 @@ public class ItemSerializer {
     }
     
     public static ItemStack[] itemStackArrayFromBase64(String data) {
-        if (data == null || data.isEmpty()) return new ItemStack[5]; // Default 5 slot
+        if (data == null || data.isEmpty()) return new ItemStack[5];
         try {
-            // Menggunakan Base64 bawaan Java
             byte[] decodedData = Base64.getDecoder().decode(data);
             ByteArrayInputStream inputStream = new ByteArrayInputStream(decodedData);
-            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            java.io.DataInputStream dataInput = new java.io.DataInputStream(inputStream);
             
-            ItemStack[] items = new ItemStack[dataInput.readInt()];
-            for (int i = 0; i < items.length; i++) {
-                items[i] = (ItemStack) dataInput.readObject();
+            int length = dataInput.readInt();
+            ItemStack[] items = new ItemStack[length];
+            for (int i = 0; i < length; i++) {
+                int bytesLength = dataInput.readInt();
+                if (bytesLength == -1) {
+                    items[i] = null;
+                } else {
+                    byte[] bytes = new byte[bytesLength];
+                    dataInput.readFully(bytes);
+                    items[i] = ItemStack.deserializeBytes(bytes);
+                }
             }
             dataInput.close();
             return items;
         } catch (Exception e) {
-            // Mengembalikan inventory fuel kosong (aman) jika data tidak bisa dibaca
             return new ItemStack[5]; 
         }
     }

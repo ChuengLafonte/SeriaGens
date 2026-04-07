@@ -36,6 +36,11 @@ public class GeneratorManager {
     private final Map<UUID, List<Generator>> playerGenerators;
     private final Map<String, List<PendingGenerator>> pendingRestorations;
     
+    // CACHING FOR PERFORMANCE
+    private final List<Generator> cachedGens = new ArrayList<>();
+    private boolean needsCacheUpdate = true;
+    private final Random random = new Random();
+    
     // EVENT VARIABLES
     private int dropMultiplier = 1;
     private double speedReductionPercent = 0.0; // PERBAIKAN: Menggunakan persentase pengurangan
@@ -107,6 +112,7 @@ public class GeneratorManager {
             generators.put(location, gen);
             playerGenerators.computeIfAbsent(gen.getOwner(), k -> new ArrayList<>()).add(gen);
         }
+        needsCacheUpdate = true;
         plugin.getLogger().info("Loaded " + generators.size() + " generators");
     }
     
@@ -122,6 +128,7 @@ public class GeneratorManager {
                     generators.put(location, pg.generator);
                     playerGenerators.computeIfAbsent(pg.generator.getOwner(), k -> new ArrayList<>()).add(pg.generator);
                     restoreGeneratorBlock(pg.generator);
+                    needsCacheUpdate = true;
                 } catch (Exception ignored) {}
             }
         }
@@ -189,6 +196,7 @@ public class GeneratorManager {
         
         generators.put(location, gen);
         playerGenerators.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>()).add(gen);
+        needsCacheUpdate = true;
         plugin.getDatabaseManager().saveGenerator(gen);
         
         if (plugin.getConfig().getBoolean("sounds.generator-place.enabled", true)) {
@@ -206,9 +214,9 @@ public class GeneratorManager {
         generators.remove(location);
         List<Generator> playerGens = playerGenerators.get(gen.getOwner());
         if (playerGens != null) playerGens.remove(gen);
+        needsCacheUpdate = true;
         
         plugin.getDatabaseManager().deleteGenerator(gen.getId());
-        plugin.getHologramIntegration().removeCorruptionHologram(gen);
         location.getBlock().setType(Material.AIR);
         
         if (player != null && player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
@@ -237,16 +245,20 @@ public class GeneratorManager {
     public void tickGenerators() {
         if (generators.isEmpty()) return;
         
-        List<Generator> allGens = new ArrayList<>(generators.values());
-        int size = allGens.size();
-        int perBucket = Math.max(1, size / TICK_BUCKETS);
+        if (needsCacheUpdate) {
+            cachedGens.clear();
+            cachedGens.addAll(generators.values());
+            needsCacheUpdate = false;
+        }
+
+        int size = cachedGens.size();
+        int perBucket = Math.max(1, (size + TICK_BUCKETS - 1) / TICK_BUCKETS);
         
         int start = currentTickOffset * perBucket;
-        int end = (currentTickOffset == TICK_BUCKETS - 1) ? size : (currentTickOffset + 1) * perBucket;
+        int end = Math.min(start + perBucket, size);
         
-        for (int i = start; i < end && i < size; i++) {
-            Generator gen = allGens.get(i);
-            processGeneratorTick(gen);
+        for (int i = start; i < end; i++) {
+            processGeneratorTick(cachedGens.get(i));
         }
         
         currentTickOffset = (currentTickOffset + 1) % TICK_BUCKETS;
@@ -300,9 +312,9 @@ public class GeneratorManager {
         
         // PERBAIKAN: Mode MIXED UP EVENT (Acak Total)
         if (mixedUpMode) {
-            List<String> allTypes = new ArrayList<>(plugin.getConfigManager().getAllGeneratorTypes());
+            java.util.List<String> allTypes = new java.util.ArrayList<>(plugin.getConfigManager().getAllGeneratorTypes());
             if (!allTypes.isEmpty()) {
-                effectiveType = allTypes.get(new Random().nextInt(allTypes.size()));
+                effectiveType = allTypes.get(this.random.nextInt(allTypes.size()));
             }
         } else if (tierBoost > 0) {
             for (int i = 0; i < tierBoost; i++) {
@@ -326,8 +338,7 @@ public class GeneratorManager {
         }
         if (totalChance == 0) return;
         
-        Random random = new Random();
-        int roll = random.nextInt(totalChance);
+        int roll = this.random.nextInt(totalChance);
         int current = 0;
         String selectedDrop = null;
         

@@ -9,7 +9,6 @@ import id.seria.gens.commands.MainCommand;
 import id.seria.gens.commands.SellCommand;
 import id.seria.gens.commands.ShopCommand;
 import id.seria.gens.integration.BentoBoxIntegration;
-import id.seria.gens.integration.FancyHologramsIntegration;
 import id.seria.gens.listeners.ChunkListener;
 import id.seria.gens.listeners.GUIListener;
 import id.seria.gens.listeners.GeneratorListener;
@@ -39,7 +38,6 @@ public final class SeriaGens extends JavaPlugin {
     private SellManager sellManager;
     private RequirementsChecker requirementsChecker;
     private EventManager eventManager;
-    private FancyHologramsIntegration hologramIntegration;
     private FuelManager fuelManager;
 
     @Override
@@ -78,7 +76,6 @@ public final class SeriaGens extends JavaPlugin {
         sellManager = new SellManager(this);
         requirementsChecker = new RequirementsChecker(this);
         eventManager = new EventManager(this);
-        hologramIntegration = new FancyHologramsIntegration(this);
 
         getLogger().info("Registering event listeners...");
         getServer().getPluginManager().registerEvents(new GeneratorListener(this), this);
@@ -117,8 +114,6 @@ public final class SeriaGens extends JavaPlugin {
     
     @Override
     public void onDisable() {
-        if (hologramIntegration != null) hologramIntegration.removeAllHolograms();
-        
         // PENTING: Simpan semua data sebelum mati!
         if (fuelManager != null) fuelManager.saveAllGrids(); 
         if (generatorManager != null) generatorManager.saveAllSync(); 
@@ -158,6 +153,5 @@ public final class SeriaGens extends JavaPlugin {
     public SellManager getSellManager() { return sellManager; }
     public RequirementsChecker getRequirementsChecker() { return requirementsChecker; }
     public EventManager getEventManager() { return eventManager; }
-    public FancyHologramsIntegration getHologramIntegration() { return hologramIntegration; }
     public FuelManager getFuelManager() { return fuelManager; }
 }
