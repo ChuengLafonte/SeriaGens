@@ -287,7 +287,6 @@ public class GeneratorManagementGUI extends BaseGUI {
                 } else {
                     ItemStack displayFuel = rawFuelItem.clone();
                     ItemMeta meta = displayFuel.getItemMeta();
-                    @SuppressWarnings("deprecation")
                     List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
                     
                     lore.add(plugin.getConfigManager().colorize("&8&m------------------"));
@@ -322,7 +321,7 @@ public class GeneratorManagementGUI extends BaseGUI {
                             if (isFiller) {
                                 p.setItemOnCursor(null);
                             } else {
-                                p.setItemOnCursor(rawFuelItem.clone()); 
+                                p.setItemOnCursor(rawFuelItem != null ? rawFuelItem.clone() : null); 
                             }
                             globalGrid.setFuel(fuelIndex, newFuel);
                             globalGrid.calculateGridStatus(plugin);

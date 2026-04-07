@@ -176,7 +176,6 @@ public class MainCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         
-        @SuppressWarnings("deprecation")
         org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
         if (target == null || !target.hasPlayedBefore() && !target.isOnline()) {
             sender.sendMessage(plugin.getConfigManager().getMessage("player-not-found"));
@@ -197,7 +196,6 @@ public class MainCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         
-        @SuppressWarnings("deprecation")
         org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
         if (target == null || !target.hasPlayedBefore() && !target.isOnline()) {
             sender.sendMessage(plugin.getConfigManager().getMessage("player-not-found"));

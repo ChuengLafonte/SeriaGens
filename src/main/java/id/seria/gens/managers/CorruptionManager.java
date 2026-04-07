@@ -4,6 +4,7 @@ import id.seria.gens.SeriaGens;
 import id.seria.gens.models.Generator;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,7 +122,7 @@ public class CorruptionManager {
         for (String msg : broadcast) {
             String formatted = plugin.getConfigManager()
                 .colorize(msg.replace("{amount}", String.valueOf(amount)));
-            Bukkit.broadcastMessage(formatted);
+            Bukkit.broadcast(LegacyComponentSerializer.legacySection().deserialize(formatted));
         }
     }
     

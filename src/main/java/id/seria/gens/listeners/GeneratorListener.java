@@ -1,5 +1,6 @@
 package id.seria.gens.listeners;
 
+import java.util.Objects;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,7 +32,7 @@ public class GeneratorListener implements Listener {
         String generatorType = null;
         for (String type : plugin.getConfigManager().getAllGeneratorTypes()) {
             ItemStack genItem = plugin.getGeneratorManager().getGeneratorItem(type);
-            if (genItem.hasItemMeta() && genItem.getItemMeta().getDisplayName().equals(meta.getDisplayName())) {
+            if (genItem.hasItemMeta() && Objects.equals(genItem.getItemMeta().displayName(), meta.displayName())) {
                 generatorType = type;
                 break;
             }

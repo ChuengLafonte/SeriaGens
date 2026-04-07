@@ -21,6 +21,8 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import java.util.stream.Collectors;
 import org.bukkit.util.Vector;
 
 import id.seria.gens.SeriaGens;
@@ -57,12 +59,10 @@ public class GeneratorManager {
     public int getTierBoost() { return tierBoost; }
     
     private static class PendingGenerator {
-        String worldName;
         int x, y, z;
         Generator generator;
         
         PendingGenerator(String worldName, int x, int y, int z, Generator gen) {
-            this.worldName = worldName;
             this.x = x;
             this.y = y;
             this.z = z;
@@ -352,11 +352,13 @@ public class GeneratorManager {
         
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            if (dropConfig.contains("display-name")) meta.setDisplayName(plugin.getConfigManager().colorize(dropConfig.getString("display-name")));
+            if (dropConfig.contains("display-name")) {
+                meta.displayName(LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(dropConfig.getString("display-name"))));
+            }
             if (dropConfig.contains("lore")) {
-                List<String> lore = new ArrayList<>();
-                for (String line : dropConfig.getStringList("lore")) lore.add(plugin.getConfigManager().colorize(line));
-                meta.setLore(lore);
+                meta.lore(dropConfig.getStringList("lore").stream()
+                    .map(line -> LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(line)))
+                    .collect(Collectors.toList()));
             }
             
             double sellValue = drops.getDouble(selectedDrop + ".sell-value", 0.0);
@@ -410,11 +412,13 @@ public class GeneratorManager {
         ItemStack item = new ItemStack(material != null ? material : Material.STONE, itemConfig.getInt("amount", 1));
         ItemMeta meta = item.getItemMeta();
         
-        if (itemConfig.contains("display-name")) meta.setDisplayName(plugin.getConfigManager().colorize(itemConfig.getString("display-name")));
+        if (itemConfig.contains("display-name")) {
+            meta.displayName(LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(itemConfig.getString("display-name"))));
+        }
         if (itemConfig.contains("lore")) {
-            List<String> lore = new ArrayList<>();
-            for (String line : itemConfig.getStringList("lore")) lore.add(plugin.getConfigManager().colorize(line));
-            meta.setLore(lore);
+            meta.lore(itemConfig.getStringList("lore").stream()
+                .map(line -> LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(line)))
+                .collect(Collectors.toList()));
         }
         item.setItemMeta(meta);
         return item;

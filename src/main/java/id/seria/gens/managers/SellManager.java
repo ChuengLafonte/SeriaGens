@@ -10,6 +10,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import id.seria.gens.SeriaGens;
 import id.seria.gens.integration.ShopGUIPlusIntegration;
@@ -33,14 +36,12 @@ public class SellManager {
         String displayName;
         List<String> lore;
         double sellValue;
-        String generatorType;
         
-        CustomItemData(Material material, String displayName, List<String> lore, double sellValue, String generatorType) {
+        CustomItemData(Material material, String displayName, List<String> lore, double sellValue) {
             this.material = material;
             this.displayName = displayName;
             this.lore = lore;
             this.sellValue = sellValue;
-            this.generatorType = generatorType;
         }
         
         boolean matches(ItemStack item) {
@@ -51,12 +52,14 @@ public class SellManager {
                 ItemMeta meta = item.getItemMeta();
                 
                 if (displayName != null) {
-                    if (!meta.hasDisplayName() || !meta.getDisplayName().equals(displayName)) return false;
+                    if (!meta.hasDisplayName() || !Objects.equals(meta.displayName(), LegacyComponentSerializer.legacySection().deserialize(displayName))) return false;
                 }
                 
                 if (lore != null && !lore.isEmpty()) {
                     if (!meta.hasLore()) return false;
-                    List<String> itemLore = meta.getLore();
+                    List<String> itemLore = meta.lore().stream()
+                        .map(comp -> LegacyComponentSerializer.legacySection().serialize(comp))
+                        .collect(Collectors.toList());
                     for (String line : lore) {
                         if (!itemLore.contains(line)) return false;
                     }
@@ -97,7 +100,7 @@ public class SellManager {
                     }
                 }
                 
-                customItems.add(new CustomItemData(material, displayName, lore, sellValue, genType));
+                customItems.add(new CustomItemData(material, displayName, lore, sellValue));
             }
         }
         plugin.getLogger().info("Loaded " + customItems.size() + " custom item sell values");

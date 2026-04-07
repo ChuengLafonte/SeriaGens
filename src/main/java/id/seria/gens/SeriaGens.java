@@ -48,7 +48,7 @@ public final class SeriaGens extends JavaPlugin {
         saveDefaultConfig();
         
         getLogger().info("========================================");
-        getLogger().info("  SeriaGens v" + getDescription().getVersion());
+        getLogger().info("  SeriaGens v" + getPluginMeta().getVersion());
         getLogger().info("========================================");
         
         if (!setupEconomy()) {

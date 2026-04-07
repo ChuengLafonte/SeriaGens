@@ -2,6 +2,7 @@ package id.seria.gens.managers;
 
 import id.seria.gens.SeriaGens;
 import org.bukkit.Bukkit;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -119,7 +120,7 @@ public class EventManager {
         
         // Broadcast start messages
         for (String message : event.getStartMessages()) {
-            Bukkit.broadcastMessage(plugin.getConfigManager().colorize(message));
+            Bukkit.broadcast(LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(message)));
         }
         
         // Schedule event end
@@ -143,7 +144,7 @@ public class EventManager {
         
         // Broadcast end messages
         for (String message : activeEvent.getEndMessages()) {
-            Bukkit.broadcastMessage(plugin.getConfigManager().colorize(message));
+            Bukkit.broadcast(LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(message)));
         }
         
         activeEvent = null;

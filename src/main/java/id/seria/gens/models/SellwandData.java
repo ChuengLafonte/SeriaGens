@@ -1,6 +1,6 @@
 package id.seria.gens.models;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 import org.bukkit.Material;
@@ -11,6 +11,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import java.util.stream.Collectors;
 
 import id.seria.gens.SeriaGens;
 
@@ -49,17 +51,14 @@ public class SellwandData {
         String usesDisplay = isUnlimited() ? unlimText : "&e" + uses;
         
         String nameFormat = plugin.getConfig().getString("sellwand-item.name", "Sell Wand");
-        meta.setDisplayName(plugin.getConfigManager().colorize(nameFormat.replace("{multiplier}", String.valueOf(multiplier))));
+        meta.displayName(LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(nameFormat.replace("{multiplier}", String.valueOf(multiplier)))));
         
         List<String> loreFormat = plugin.getConfig().getStringList("sellwand-item.lore");
-        List<String> lore = new ArrayList<>();
-        for (String line : loreFormat) {
-            lore.add(plugin.getConfigManager().colorize(line
+        meta.lore(loreFormat.stream()
+            .map(line -> LegacyComponentSerializer.legacySection().deserialize(plugin.getConfigManager().colorize(line
                 .replace("{multiplier}", String.valueOf(multiplier))
-                .replace("{uses}", usesDisplay)
-            ));
-        }
-        meta.setLore(lore);
+                .replace("{uses}", usesDisplay))))
+            .collect(Collectors.toList()));
         
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(new NamespacedKey(plugin, SELLWAND_KEY), PersistentDataType.BYTE, (byte) 1);
