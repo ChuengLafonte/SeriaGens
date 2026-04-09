@@ -216,7 +216,7 @@ public class GeneratorManager {
         if (playerGens != null) playerGens.remove(gen);
         needsCacheUpdate = true;
         
-        plugin.getDatabaseManager().deleteGenerator(gen.getId());
+        plugin.getDatabaseManager().deleteGeneratorSync(gen.getId());
         location.getBlock().setType(Material.AIR);
         
         if (player != null && player.getGameMode() != org.bukkit.GameMode.CREATIVE) {

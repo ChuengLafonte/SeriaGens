@@ -268,18 +268,18 @@ public class DatabaseManager {
     }
     
     public CompletableFuture<Void> deleteGenerator(String id) {
-        return CompletableFuture.runAsync(() -> {
-            synchronized (this) {
-                if (connection == null) return;
-                String sql = "DELETE FROM generators WHERE id = ?";
-                try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                    stmt.setString(1, id);
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    plugin.getLogger().severe("Failed to delete generator: " + e.getMessage());
-                }
-            }
-        });
+        return CompletableFuture.runAsync(() -> deleteGeneratorSync(id));
+    }
+
+    public synchronized void deleteGeneratorSync(String id) {
+        if (connection == null) return;
+        String sql = "DELETE FROM generators WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to delete generator: " + e.getMessage());
+        }
     }
     
     // --- METHOD GARDU INDUK GLOBAL FUEL ---

@@ -114,6 +114,8 @@ public class GeneratorListener implements Listener {
         if (event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
             new id.seria.gens.gui.UpgradeGUI(plugin, player, gen).open();
         } else if (event.getAction() == org.bukkit.event.block.Action.LEFT_CLICK_BLOCK) {
+            if (!player.isSneaking()) return;
+            
             if (gen.isCorrupted()) {
                 player.sendMessage(plugin.getConfigManager().getMessage("generator-corrupted-interact"));
                 return;
