@@ -7,14 +7,7 @@
 database:
   type: SQLITE  # MYSQL or SQLITE
   auto-save-interval: 300 # dalam detik (5 menit)
-  mysql:
-    host: localhost
-    port: 3306
-    database: seriagens
-    user: root
-    password: ""
-    useSSL: false
-
+  
 # Generator Settings
 generators:
   # Should generators work only when owner is online?
