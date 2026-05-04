@@ -1,18 +1,12 @@
-target/
-*.class
-
-# IDE files
+﻿target/
+lib/
+*.log
 .idea/
 *.iml
 .vscode/
-
-# Build artifacts
-*.jar
-*.war
-*dependency-reduced-pom.xml
-
-# Log files
-*.log
-
-# Windows thumbnail cache
+.project
+.classpath
+.settings/
+.factorypath
+.DS_Store
 Thumbs.db
